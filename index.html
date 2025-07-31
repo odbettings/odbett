@@ -67,13 +67,13 @@
             color: #991b1b;
         }
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-        }
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar.active {
+        transform: translateX(0);
+    }
+}
 
             input {
         background-color: var(--bg-secondary);
@@ -300,7 +300,7 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold">Betting Platform</h2>
-                    <button onclick="state.sidebarOpen = false; render()" class="md:hidden">
+                    <button onclick="state.sidebarOpen = false; render()" class="md:hidden text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -796,49 +796,54 @@
 
         // Main render function
         function render() {
-            const app = document.getElementById('app');
-            
-            let content = '';
-            switch (state.currentView) {
-                case 'login':
-                    content = Login();
-                    break;
-                case 'user-management':
-                    content = UserManagement();
-                    break;
-                case 'game-management':
-                    content = GameManagement();
-                    break;
-                case 'bets-view':
-                    content = BetsView();
-                    break;
-                case 'games':
-                    content = Games();
-                    break;
-                case 'betting-history':
-                    content = BettingHistory();
-                    break;
-                default:
-                    content = Login();
-            }
-            
-            const sidebar = state.currentUser ? Sidebar() : '';
-            const menuButton = state.currentUser ? `
-                <button onclick="state.sidebarOpen = !state.sidebarOpen; render()" 
-    class="md:hidden fixed top-4 left-4 z-30 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
-    <i class="fas fa-bars"></i>
-</button>
-            ` : '';
-            
-            app.innerHTML = `
-                ${sidebar}
-                ${menuButton}
-                <div class="${state.currentUser ? 'md:ml-64' : ''} min-h-screen transition-all duration-300">
-                    ${content}
-                </div>
-            `;
-        }
+    const app = document.getElementById('app');
+    let content = '';
+    switch (state.currentView) {
+        case 'login':
+            content = Login();
+            break;
+        case 'user-management':
+            content = UserManagement();
+            break;
+        case 'game-management':
+            content = GameManagement();
+            break;
+        case 'bets-view':
+            content = BetsView();
+            break;
+        case 'games':
+            content = Games();
+            break;
+        case 'betting-history':
+            content = BettingHistory();
+            break;
+        default:
+            content = Login();
+    }
 
+    const sidebar = state.currentUser ? Sidebar() : '';
+    const menuButton = state.currentUser ? `
+        <button onclick="state.sidebarOpen = !state.sidebarOpen; render()" 
+            class="md:hidden fixed top-4 left-4 z-30 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
+            <i class="fas fa-bars"></i>
+        </button>
+    ` : '';
+
+    // Add an overlay when sidebar is open
+    const overlay = state.currentUser && state.sidebarOpen ? `
+        <div onclick="state.sidebarOpen = false; render()"
+             class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"></div>
+    ` : '';
+
+    app.innerHTML = `
+        ${menuButton}
+        ${sidebar}
+        ${overlay}
+        <div class="${state.currentUser ? 'md:ml-64' : ''} min-h-screen transition-all duration-300">
+            ${content}
+        </div>
+    `;
+}
         // Initialize app
         render();
     </script>
