@@ -3,1561 +3,851 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Points Betting System</title>
+    <title>Betting Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #FFA500;
-            --secondary-color: #FFFFFF;
-            --dark-bg: #1a1a1a;
-            --light-bg: #f5f5f5;
-            --text-dark: #333;
-            --text-light: #f0f0f0;
-            --sidebar-width: 250px;
-            --header-height: 60px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-dark);
-            min-height: 100vh;
         }
-
-        body.dark-mode {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Login Styles */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .login-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        body.dark-mode .login-card {
-            background: #2d2d2d;
-        }
-
-        .login-card h2 {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        body.dark-mode .form-group input {
-            background: #404040;
-            border-color: #555;
-            color: white;
-        }
-
-        .btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            width: 100%;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        /* Admin Layout */
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
         .sidebar {
-            width: var(--sidebar-width);
-            background: var(--primary-color);
-            color: white;
-            padding: 1rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
+            transition: all 0.3s ease;
         }
-
-        .sidebar-header {
-            padding: 0 1rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 1rem;
+        .dark-mode {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --card-bg: #2d2d2d;
+            --border-color: #333333;
         }
-
-        .sidebar-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .light-mode {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
         }
-
-        .sidebar-nav {
-            list-style: none;
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
-
-        .sidebar-nav li {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-nav a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 0.75rem 1rem;
-            transition: background-color 0.2s;
-        }
-
-        .sidebar-nav a:hover,
-        .sidebar-nav a.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            margin-top: auto;
-        }
-
-        .mode-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 1rem;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 2rem;
-        }
-
-        body.dark-mode .header {
-            border-color: #444;
-        }
-
-        .header h1 {
-            color: var(--primary-color);
-        }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        body.dark-mode .logout-btn {
-            border-color: white;
-            color: white;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 2rem;
-        }
-
-        body.dark-mode .tabs {
-            border-color: #444;
-        }
-
-        .tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom-color: var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        body.dark-mode .tab.active {
-            color: var(--primary-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Cards and Forms */
         .card {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
         }
-
-        body.dark-mode .card {
-            background: #2d2d2d;
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
         }
-
-        .card-header {
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        body.dark-mode .card-header {
-            border-color: #444;
-        }
-
-        .card-header h3 {
-            color: var(--primary-color);
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .form-col {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        body.dark-mode th, 
-        body.dark-mode td {
-            border-color: #444;
-        }
-
-        th {
-            background-color: rgba(255, 165, 0, 0.1);
-            font-weight: 600;
-        }
-
-        body.dark-mode th {
-            background-color: rgba(255, 165, 0, 0.2);
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-        }
-
         .btn-success {
-            background-color: #27ae60;
-        }
-
-        .btn-secondary {
-            background-color: #7f8c8d;
-        }
-
-        /* User View */
-        .user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        body.dark-mode .user-header {
-            background: #2d2d2d;
-        }
-
-        .points-display {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        body.dark-mode .game-card {
-            background: #2d2d2d;
-        }
-
-        .game-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-
-        .odds-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .odd-option {
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        body.dark-mode .odd-option {
-            border-color: #444;
-        }
-
-        .odd-option:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(255, 165, 0, 0.1);
-        }
-
-        .odd-option.selected {
-            border-color: var(--primary-color);
-            background-color: var(--primary-color);
+            background-color: #10b981;
             color: white;
         }
-
-        .bet-form {
-            display: flex;
-            gap: 1rem;
-            align-items: end;
-            flex-wrap: wrap;
-        }
-
-        .bet-input {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .bet-input input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        body.dark-mode .bet-input input {
-            background: #404040;
-            border-color: #555;
+        .btn-danger {
+            background-color: #ef4444;
             color: white;
         }
-
-        .projected-winnings {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #7f8c8d;
+        .btn-warning {
+            background-color: #f59e0b;
+            color: white;
         }
-
-        body.dark-mode .projected-winnings {
-            color: #aaa;
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
         }
-
-        /* Mobile Styles */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--primary-color);
+        .status-won {
+            background-color: #dcfce7;
+            color: #166534;
         }
-
+        .status-lost {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
-                transition: transform 0.3s ease;
             }
-
             .sidebar.active {
                 transform: translateX(0);
             }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                position: fixed;
-                top: 1rem;
-                left: 1rem;
-                z-index: 1001;
-            }
-
-            .overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
-            }
-
-            .overlay.active {
-                display: block;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .form-col {
-                min-width: 100%;
-            }
-
-            .odds-container {
-                flex-direction: column;
-            }
-
-            .bet-form {
-                flex-direction: column;
-                align-items: stretch;
-            }
         }
 
-        /* Utility Classes */
-        .text-center {
-            text-align: center;
-        }
+            input {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
 
-        .mb-1 {
-            margin-bottom: 1rem;
-        }
-
-        .mb-2 {
-            margin-bottom: 2rem;
-        }
-
-        .mt-1 {
-            margin-top: 1rem;
-        }
-
-        .d-flex {
-            display: flex;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .align-items-center {
-            align-items: center;
-        }
-
-        .gap-1 {
-            gap: 1rem;
-        }
+    input::placeholder {
+        color: var(--text-secondary);
+    }
     </style>
 </head>
-<body>
-    <!-- Login Screen -->
-    <div id="login-screen" class="login-container">
-        <div class="login-card">
-            <h2>Points Betting System</h2>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn">Login</button>
-                <div id="login-error" class="error-message"></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Admin Layout -->
-    <div id="admin-layout" class="admin-layout" style="display: none;">
-        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
-        <div class="overlay" id="overlay"></div>
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>Odet - Admin</h3>
-            </div>
-            <ul class="sidebar-nav">
-                <li><a href="#" class="nav-link active" data-tab="user-management">User Management</a></li>
-                <li><a href="#" class="nav-link" data-tab="game-management">Game Management</a></li>
-                <li><a href="#" class="nav-link" data-tab="bet-management">Bet Management</a></li>
-                <li><a href="#" class="nav-link" id="switch-to-user">Switch to User View</a></li>
-                <li><a href="calculator.html">Calculator</a></li>
-            </ul>
-            <div class="sidebar-footer">
-                <div class="mode-toggle">
-                    <span>🌙</span>
-                    <label class="switch">
-                        <input type="checkbox" id="dark-mode-toggle">
-                        <span class="slider"></span>
-                    </label>
-                    <span>☀️</span>
-                </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="header">
-                <h1>Admin Dashboard</h1>
-                <button class="logout-btn" id="admin-logout">Logout</button>
-            </div>
-            
-            <div class="tabs">
-                <div class="tab active" data-tab="user-management">User Management</div>
-                <div class="tab" data-tab="game-management">Game Management</div>
-                <div class="tab" data-tab="bet-management">Bet Management</div>
-            </div>
-            
-            <!-- User Management Tab -->
-            <div class="tab-content active" id="user-management">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Create New User</h3>
-                    </div>
-                    <form id="create-user-form">
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="new-username">Username</label>
-                                    <input type="text" id="new-username" required>
-                                </div>
-                            </div>
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="new-password">Password</label>
-                                    <input type="password" id="new-password" required>
-                                </div>
-                            </div>
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="initial-points">Initial Points</label>
-                                    <input type="number" id="initial-points" value="100" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Create User</button>
-                    </form>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header d-flex justify-between align-items-center">
-                        <h3>User List</h3>
-                        <div>
-                            <span style="font-size: 0.9rem; color: #7f8c8d;">Points cost: 0.70p per point</span>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Password</th>
-                                    <th>Points</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Users will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Game Management Tab -->
-            <div class="tab-content" id="game-management">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Add New Game</h3>
-                    </div>
-                    <form id="create-game-form">
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="game-title">Game Title</label>
-                                    <input type="text" id="game-title" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="team1-name">Team 1 Name</label>
-                                    <input type="text" id="team1-name" required>
-                                </div>
-                            </div>
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="team1-odds">Team 1 Odds</label>
-                                    <input type="number" id="team1-odds" step="0.01" min="1" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="draw-odds">Draw Odds</label>
-                                    <input type="number" id="draw-odds" step="0.01" min="1" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="team2-name">Team 2 Name</label>
-                                    <input type="text" id="team2-name" required>
-                                </div>
-                            </div>
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="team2-odds">Team 2 Odds</label>
-                                    <input type="number" id="team2-odds" step="0.01" min="1" required>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Add Game</button>
-                    </form>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Game List</h3>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="games-table">
-                            <thead>
-                                <tr>
-                                    <th>Game</th>
-                                    <th>Team 1</th>
-                                    <th>Odds</th>
-                                    <th>Draw</th>
-                                    <th>Odds</th>
-                                    <th>Team 2</th>
-                                    <th>Odds</th>
-                                    <th>Result</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Games will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Bet Management Tab -->
-            <div class="tab-content" id="bet-management">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Select User to View Bets</h3>
-                    </div>
-                    <div class="form-group">
-                        <label for="user-selector">User</label>
-                        <select id="user-selector">
-                            <option value="">Select a user</option>
-                            <!-- Users will be populated here -->
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="card" id="bets-display" style="display: none;">
-                    <div class="card-header">
-                        <h3>Betting History for <span id="selected-user-name"></span></h3>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="bets-table">
-                            <thead>
-                                <tr>
-                                    <th>Game</th>
-                                    <th>Bet Amount</th>
-                                    <th>Selection</th>
-                                    <th>Odds</th>
-                                    <th>Status</th>
-                                    <th>Winnings</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Bets will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- User View -->
-    <div id="user-view" style="display: none;">
-        <div class="user-header">
-            <div class="d-flex align-items-center gap-1">
-                <button class="mobile-menu-btn" id="user-mobile-menu-btn">☰</button>
-                <h2>User Dashboard</h2>
-            </div>
-            <div class="points-display">
-                Points: <span id="user-points">0</span>
-            </div>
-            <button class="logout-btn" id="user-logout">Logout</button>
-        </div>
-        
-        <div class="container">
-            <div class="mb-2">
-                <h3>Available Games</h3>
-            </div>
-            
-            <div id="games-container">
-                <!-- Games will be populated here -->
-            </div>
-            
-            <div class="mb-2">
-                <h3>Betting History</h3>
-            </div>
-            
-            <div class="card">
-                <div class="table-responsive">
-                    <table id="user-bets-table">
-                        <thead>
-                            <tr>
-                                <th>Game</th>
-                                <th>Bet Amount</th>
-                                <th>Selection</th>
-                                <th>Odds</th>
-                                <th>Status</th>
-                                <th>Winnings</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- User bets will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+<body class="light-mode">
+    <div id="app"></div>
 
     <script>
-        // Data Storage
-        const appData = {
+        // State management
+        const state = {
             currentUser: null,
+            darkMode: false,
             users: [
-                { username: 'Odet', password: 'Odet', points: 1000, role: 'admin' }
+                { id: 1, username: 'admin', password: 'admin123', role: 'admin', balance: 1000 },
             ],
             games: [],
-            bets: []
+            bets: [],
+
+            currentView: 'login',
+            sidebarOpen: false
         };
-
-        // DOM Elements
-        const loginScreen = document.getElementById('login-screen');
-        const adminLayout = document.getElementById('admin-layout');
-        const userView = document.getElementById('user-view');
-        const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const userMobileMenuBtn = document.getElementById('user-mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        // Initialize the app
-        function initApp() {
-            // Check for dark mode preference
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
-            }
-            
-            // Load sample data
-            loadSampleData();
-            
-            // Bind events
-            bindEvents();
-        }
-
-        // Load sample data
-        function loadSampleData() {
-            // Add sample users
-
-            
-            // Add sample games
-            
-            // Add sample bets
-            if (appData.bets.length === 0) {
-                appData.bets.push(
-                    {
-                        id: 1,
-                        userId: 'user1',
-                        gameId: 1,
-                        amount: 50,
-                        selection: 'team1',
-                        odds: 2.5,
-                        status: 'pending',
-                        winnings: 0
-                    }
-                );
-            }
-        }
-
-        // Bind events
-        function bindEvents() {
-            // Login form
-            loginForm.addEventListener('submit', handleLogin);
-            
-            // Dark mode toggle
-            darkModeToggle.addEventListener('change', toggleDarkMode);
-            
-            // Mobile menu
-            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-            userMobileMenuBtn.addEventListener('click', toggleMobileMenu);
-            overlay.addEventListener('click', closeMobileMenu);
-            
-            // Admin logout
-            document.getElementById('admin-logout').addEventListener('click', logout);
-            document.getElementById('user-logout').addEventListener('click', logout);
-            
-            // Switch to user view
-            document.getElementById('switch-to-user').addEventListener('click', switchToUserView);
-            
-            // Tab navigation
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Update active tab
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    // Show active content
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById(tab.dataset.tab).classList.add('active');
-                });
-            });
-            
-            // Navigation links
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (link.dataset.tab) {
-                        // Update active nav link
-                        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                        link.classList.add('active');
-                        
-                        // Update active tab
-                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                        document.querySelector(`.tab[data-tab="${link.dataset.tab}"]`).classList.add('active');
-                        
-                        // Show active content
-                        document.querySelectorAll('.tab-content').forEach(content => {
-                            content.classList.remove('active');
-                        });
-                        document.getElementById(link.dataset.tab).classList.add('active');
-                        
-                        closeMobileMenu();
-                    }
-                });
-            });
-            
-            // Create user form
-            document.getElementById('create-user-form').addEventListener('submit', handleCreateUser);
-            
-            // Create game form
-            document.getElementById('create-game-form').addEventListener('submit', handleCreateGame);
-            
-            // User selector
-            document.getElementById('user-selector').addEventListener('change', handleUserSelection);
-        }
-
-        // Handle login
-        function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            const user = appData.users.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                appData.currentUser = user;
-                loginError.textContent = '';
-                loginScreen.style.display = 'none';
-                
-                if (user.role === 'admin') {
-                    showAdminView();
-                } else {
-                    showUserView();
-                }
-            } else {
-                loginError.textContent = 'Invalid username or password';
-            }
-        }
-
-        // Show admin view
-        function showAdminView() {
-            adminLayout.style.display = 'flex';
-            renderAdminData();
-        }
-
-        // Show user view
-        function showUserView() {
-            userView.style.display = 'block';
-            renderUserData();
-        }
-
-        // Switch to user view (for admin testing)
-        function switchToUserView() {
-            adminLayout.style.display = 'none';
-            showUserView();
-        }
-
-        // Logout
-        function logout() {
-            appData.currentUser = null;
-            adminLayout.style.display = 'none';
-            userView.style.display = 'none';
-            loginScreen.style.display = 'flex';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
 
         // Toggle dark mode
         function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            state.darkMode = !state.darkMode;
+            document.body.className = state.darkMode ? 'dark-mode' : 'light-mode';
+            render();
         }
 
-        // Toggle mobile menu
-        function toggleMobileMenu() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        // Close mobile menu
-        function closeMobileMenu() {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        }
-
-        // Render admin data
-        function renderAdminData() {
-            renderUsersTable();
-            renderGamesTable();
-            renderUserSelector();
-        }
-
-        // Render users table
-        function renderUsersTable() {
-            const tbody = document.querySelector('#users-table tbody');
-            tbody.innerHTML = '';
-            
-            appData.users.forEach(user => {
-                if (user.username === 'Odet') return; // Skip admin
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.username}</td>
-                    <td>${user.password}</td>
-                    <td>
-                        <input type="number" value="${user.points}" class="points-input" data-username="${user.username}" style="width: 80px;">
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-success add-points-btn" data-username="${user.username}">+</button>
-                        <button class="btn btn-sm btn-danger remove-points-btn" data-username="${user.username}">-</button>
-                        <button class="btn btn-sm btn-danger delete-user-btn" data-username="${user.username}">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            // Bind events for user actions
-            document.querySelectorAll('.add-points-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const username = btn.dataset.username;
-                    const input = document.querySelector(`.points-input[data-username="${username}"]`);
-                    const amount = parseInt(prompt('Enter points to add:'));
-                    if (amount && amount > 0) {
-                        updateUserPoints(username, amount);
-                        renderUsersTable();
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.remove-points-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const username = btn.dataset.username;
-                    const input = document.querySelector(`.points-input[data-username="${username}"]`);
-                    const amount = parseInt(prompt('Enter points to remove:'));
-                    if (amount && amount > 0) {
-                        updateUserPoints(username, -amount);
-                        renderUsersTable();
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.delete-user-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const username = btn.dataset.username;
-                    if (confirm(`Are you sure you want to delete user ${username}?`)) {
-                        deleteUser(username);
-                        renderUsersTable();
-                    }
-                });
-            });
-        }
-
-        // Render games table
-        function renderGamesTable() {
-            const tbody = document.querySelector('#games-table tbody');
-            tbody.innerHTML = '';
-            
-            appData.games.forEach(game => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${game.title}</td>
-                    <td>${game.team1.name}</td>
-                    <td>${game.team1.odds}</td>
-                    <td>Draw</td>
-                    <td>${game.draw.odds}</td>
-                    <td>${game.team2.name}</td>
-                    <td>${game.team2.odds}</td>
-                    <td>
-                        ${game.result ? 
-                            (game.result === 'team1' ? game.team1.name : 
-                             game.result === 'team2' ? game.team2.name : 'Draw') : 
-                            `<select class="result-selector" data-game-id="${game.id}">
-                                <option value="">Set Result</option>
-                                <option value="team1">${game.team1.name}</option>
-                                <option value="draw">Draw</option>
-                                <option value="team2">${game.team2.name}</option>
-                            </select>`
-                        }
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-danger delete-game-btn" data-game-id="${game.id}">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            // Bind events for game actions
-            document.querySelectorAll('.result-selector').forEach(select => {
-                select.addEventListener('change', (e) => {
-                    const gameId = parseInt(select.dataset.gameId);
-                    const result = e.target.value;
-                    if (result) {
-                        setGameResult(gameId, result);
-                        renderGamesTable();
-                        resolveBetsForGame(gameId);
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.delete-game-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const gameId = parseInt(btn.dataset.gameId);
-                    if (confirm('Are you sure you want to delete this game?')) {
-                        deleteGame(gameId);
-                        renderGamesTable();
-                    }
-                });
-            });
-        }
-
-        // Render user selector
-        function renderUserSelector() {
-            const selector = document.getElementById('user-selector');
-            selector.innerHTML = '<option value="">Select a user</option>';
-            
-            appData.users.forEach(user => {
-                if (user.username !== 'Odet') { // Skip admin
-                    const option = document.createElement('option');
-                    option.value = user.username;
-                    option.textContent = user.username;
-                    selector.appendChild(option);
-                }
-            });
-        }
-
-        // Handle user selection
-        function handleUserSelection(e) {
-            const username = e.target.value;
-            const betsDisplay = document.getElementById('bets-display');
-            
-            if (username) {
-                document.getElementById('selected-user-name').textContent = username;
-                renderUserBets(username);
-                betsDisplay.style.display = 'block';
+        // Login function
+        function login(username, password) {
+            const user = state.users.find(u => u.username === username && u.password === password);
+            if (user) {
+                state.currentUser = user;
+                state.currentView = user.role === 'admin' ? 'user-management' : 'games';
+                render();
             } else {
-                betsDisplay.style.display = 'none';
+                alert('Invalid credentials!');
             }
         }
 
-        // Render user bets
-        function renderUserBets(username) {
-            const tbody = document.querySelector('#bets-table tbody');
-            tbody.innerHTML = '';
-            
-            const userBets = appData.bets.filter(bet => bet.userId === username);
-            
-            userBets.forEach(bet => {
-                const game = appData.games.find(g => g.id === bet.gameId);
-                if (!game) return;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${game.title}</td>
-                    <td>${bet.amount}</td>
-                    <td>${bet.selection === 'team1' ? game.team1.name : 
-                         bet.selection === 'team2' ? game.team2.name : 'Draw'}</td>
-                    <td>${bet.odds}</td>
-                    <td>${bet.status}</td>
-                    <td>${bet.winnings}</td>
-                `;
-                tbody.appendChild(row);
-            });
+        // Logout function
+        function logout() {
+            state.currentUser = null;
+            state.currentView = 'login';
+            render();
         }
 
-        // Handle create user
-        function handleCreateUser(e) {
-            e.preventDefault();
-            const username = document.getElementById('new-username').value;
-            const password = document.getElementById('new-password').value;
-            const points = parseInt(document.getElementById('initial-points').value);
-            
-            if (appData.users.find(u => u.username === username)) {
-                alert('Username already exists');
+        // Admin functions
+        function createUser(username, password) {
+            const userExists = state.users.some(u => u.username === username);
+            if (userExists) {
+                alert('Username already exists!');
                 return;
             }
-            
-            appData.users.push({
+            const newUser = {
+                id: Math.max(...state.users.map(u => u.id)) + 1,
                 username,
                 password,
-                points,
-                role: 'user'
-            });
-            
-            // Reset form
-            document.getElementById('create-user-form').reset();
-            
-            // Re-render users table
-            renderUsersTable();
-        }
-
-        // Handle create game
-        function handleCreateGame(e) {
-            e.preventDefault();
-            const title = document.getElementById('game-title').value;
-            const team1Name = document.getElementById('team1-name').value;
-            const team1Odds = parseFloat(document.getElementById('team1-odds').value);
-            const drawOdds = parseFloat(document.getElementById('draw-odds').value);
-            const team2Name = document.getElementById('team2-name').value;
-            const team2Odds = parseFloat(document.getElementById('team2-odds').value);
-            
-            const newGame = {
-                id: Date.now(),
-                title,
-                team1: { name: team1Name, odds: team1Odds },
-                draw: { odds: drawOdds },
-                team2: { name: team2Name, odds: team2Odds },
-                result: null
+                role: 'user',
+                balance: 0
             };
-            
-            appData.games.push(newGame);
-            
-            // Reset form
-            document.getElementById('create-game-form').reset();
-            
-            // Re-render games table
-            renderGamesTable();
+            state.users.push(newUser);
+            render();
         }
 
-        // Update user points
-        function updateUserPoints(username, amount) {
-            const user = appData.users.find(u => u.username === username);
-            if (user) {
-                user.points += amount;
-                if (user.points < 0) user.points = 0;
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                state.users = state.users.filter(u => u.id !== userId);
+                state.bets = state.bets.filter(b => b.userId !== userId);
+                render();
             }
         }
 
-        // Delete user
-        function deleteUser(username) {
-            appData.users = appData.users.filter(u => u.username !== username);
-            // Also remove user's bets
-            appData.bets = appData.bets.filter(bet => bet.userId !== username);
+        function updateUser(userId, username, password, balance) {
+            const user = state.users.find(u => u.id === userId);
+            if (user) {
+                if (username) user.username = username;
+                if (password) user.password = password;
+                if (balance !== undefined) user.balance = balance;
+                render();
+            }
         }
 
-        // Set game result
+        function addGame(title, team1, odds1, team2, odds2, oddsDraw) {
+            const newGame = {
+                id: Math.max(...state.games.map(g => g.id)) + 1,
+                title,
+                team1,
+                odds1: parseFloat(odds1),
+                team2,
+                odds2: parseFloat(odds2),
+                oddsDraw: parseFloat(oddsDraw),
+                result: null,
+                status: 'active'
+            };
+            state.games.push(newGame);
+            render();
+        }
+
         function setGameResult(gameId, result) {
-            const game = appData.games.find(g => g.id === gameId);
+            const game = state.games.find(g => g.id === gameId);
             if (game) {
                 game.result = result;
-            }
-        }
-
-        // Delete game
-        function deleteGame(gameId) {
-            appData.games = appData.games.filter(g => g.id !== gameId);
-            // Also remove bets for this game
-            appData.bets = appData.bets.filter(bet => bet.gameId !== gameId);
-        }
-
-        // Resolve bets for a game
-        function resolveBetsForGame(gameId) {
-            const game = appData.games.find(g => g.id === gameId);
-            if (!game || !game.result) return;
-            
-            appData.bets
-                .filter(bet => bet.gameId === gameId && bet.status === 'pending')
-                .forEach(bet => {
-                    if (bet.selection === game.result) {
-                        // User won
-                        const winnings = Math.floor(bet.amount * bet.odds);
-                        bet.status = 'won';
-                        bet.winnings = winnings;
-                        updateUserPoints(bet.userId, winnings);
-                    } else {
-                        // User lost
-                        bet.status = 'lost';
-                        bet.winnings = 0;
-                    }
-                });
-            
-            // If admin is viewing a user's bets, re-render
-            const selectedUser = document.getElementById('user-selector').value;
-            if (selectedUser) {
-                renderUserBets(selectedUser);
-            }
-        }
-
-        // Render user data
-        function renderUserData() {
-            // Update points display
-            document.getElementById('user-points').textContent = appData.currentUser.points;
-            
-            // Render games
-            renderAvailableGames();
-            
-            // Render user bets
-            renderUserBettingHistory();
-        }
-
-        // Render available games
-        function renderAvailableGames() {
-            const container = document.getElementById('games-container');
-            container.innerHTML = '';
-            
-            appData.games.forEach(game => {
-                if (game.result) return; // Skip resolved games
+                game.status = 'completed';
                 
-                // Check if user has already bet on this game
-                const existingBet = appData.bets.find(bet => 
-                    bet.userId === appData.currentUser.username && bet.gameId === game.id
-                );
-                
-                const gameCard = document.createElement('div');
-                gameCard.className = 'game-card';
-                gameCard.innerHTML = `
-                    <div class="game-title">${game.title}</div>
-                    <div class="odds-container">
-                        <div class="odd-option" data-selection="team1" data-game-id="${game.id}">
-                            <div>${game.team1.name}</div>
-                            <div style="font-weight: bold;">${game.team1.odds}</div>
-                        </div>
-                        <div class="odd-option" data-selection="draw" data-game-id="${game.id}">
-                            <div>Draw</div>
-                            <div style="font-weight: bold;">${game.draw.odds}</div>
-                        </div>
-                        <div class="odd-option" data-selection="team2" data-game-id="${game.id}">
-                            <div>${game.team2.name}</div>
-                            <div style="font-weight: bold;">${game.team2.odds}</div>
-                        </div>
-                    </div>
-                    ${existingBet ? 
-                        `<div style="color: green; font-weight: bold;">Bet placed: ${existingBet.amount} points on ${existingBet.selection}</div>` :
-                        `<div class="bet-form">
-                            <div class="bet-input">
-                                <label>Points to bet</label>
-                                <input type="number" min="1" max="${appData.currentUser.points}" placeholder="Enter points">
-                            </div>
-                            <button class="btn place-bet-btn" data-game-id="${game.id}">Place Bet</button>
-                        </div>
-                        <div class="projected-winnings"></div>`
-                    }
-                `;
-                container.appendChild(gameCard);
-            });
-            
-            // Bind events for betting
-            document.querySelectorAll('.odd-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove selected class from all options in this game
-                    const gameId = this.dataset.gameId;
-                    document.querySelectorAll(`.odd-option[data-game-id="${gameId}"]`).forEach(opt => {
-                        opt.classList.remove('selected');
+                // Update bets and user balances
+                state.bets
+                    .filter(bet => bet.gameId === gameId)
+                    .forEach(bet => {
+                        if ((result === 'team1' && bet.team === game.team1) ||
+                            (result === 'team2' && bet.team === game.team2) ||
+                            (result === 'draw' && bet.team === 'Draw')) {
+                            bet.status = 'won';
+                            const user = state.users.find(u => u.id === bet.userId);
+                            const odds = result === 'team1' ? game.odds1 :
+                                       result === 'team2' ? game.odds2 : game.oddsDraw;
+                            user.balance += bet.amount * odds;
+                        } else {
+                            bet.status = 'lost';
+                        }
                     });
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                    
-                    // Update projected winnings
-                    updateProjectedWinnings(gameId);
-                });
-            });
-            
-            document.querySelectorAll('.place-bet-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const gameId = parseInt(this.dataset.gameId);
-                    const gameCard = this.closest('.game-card');
-                    const selectedOption = gameCard.querySelector('.odd-option.selected');
-                    const pointsInput = gameCard.querySelector('input[type="number"]');
-                    
-                    if (!selectedOption) {
-                        alert('Please select an outcome');
-                        return;
-                    }
-                    
-                    const amount = parseInt(pointsInput.value);
-                    if (!amount || amount <= 0) {
-                        alert('Please enter a valid amount');
-                        return;
-                    }
-                    
-                    if (amount > appData.currentUser.points) {
-                        alert('Insufficient points');
-                        return;
-                    }
-                    
-                    const selection = selectedOption.dataset.selection;
-                    const game = appData.games.find(g => g.id === gameId);
-                    const odds = selection === 'team1' ? game.team1.odds : 
-                                selection === 'team2' ? game.team2.odds : game.draw.odds;
-                    
-                    // Place bet
-                    placeBet(gameId, amount, selection, odds);
-                    
-                    // Re-render games
-                    renderAvailableGames();
-                });
-            });
-        }
-
-        // Update projected winnings
-        function updateProjectedWinnings(gameId) {
-            const gameCard = document.querySelector(`.place-bet-btn[data-game-id="${gameId}"]`).closest('.game-card');
-            const selectedOption = gameCard.querySelector('.odd-option.selected');
-            const pointsInput = gameCard.querySelector('input[type="number"]');
-            const projectedDisplay = gameCard.querySelector('.projected-winnings');
-            
-            if (selectedOption && pointsInput.value) {
-                const amount = parseInt(pointsInput.value);
-                const selection = selectedOption.dataset.selection;
-                const game = appData.games.find(g => g.id === gameId);
-                const odds = selection === 'team1' ? game.team1.odds : 
-                            selection === 'team2' ? game.team2.odds : game.draw.odds;
-                
-                const projected = Math.floor(amount * odds);
-                projectedDisplay.textContent = `Projected winnings: ${projected} points`;
-            } else {
-                projectedDisplay.textContent = '';
+                render();
             }
         }
 
-        // Place bet
-        function placeBet(gameId, amount, selection, odds) {
-            // Deduct points from user
-            updateUserPoints(appData.currentUser.username, -amount);
+        // User functions
+        function placeBet(userId, gameId, team, amount) {
+            const user = state.users.find(u => u.id === userId);
+            const game = state.games.find(g => g.id === gameId);
             
-            // Add bet to system
-            appData.bets.push({
-                id: Date.now(),
-                userId: appData.currentUser.username,
-                gameId,
-                amount,
-                selection,
-                odds,
-                status: 'pending',
-                winnings: 0
-            });
-            
-            // Update current user object
-            appData.currentUser.points -= amount;
-        }
-
-        // Render user betting history
-        function renderUserBettingHistory() {
-            const tbody = document.querySelector('#user-bets-table tbody');
-            tbody.innerHTML = '';
-            
-            const userBets = appData.bets.filter(bet => bet.userId === appData.currentUser.username);
-            
-            if (userBets.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No bets placed yet</td></tr>';
+            if (user.balance < amount) {
+                alert('Insufficient balance!');
                 return;
             }
             
-            userBets.forEach(bet => {
-                const game = appData.games.find(g => g.id === bet.gameId);
-                if (!game) return;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${game.title}</td>
-                    <td>${bet.amount}</td>
-                    <td>${bet.selection === 'team1' ? game.team1.name : 
-                         bet.selection === 'team2' ? game.team2.name : 'Draw'}</td>
-                    <td>${bet.odds}</td>
-                    <td>${bet.status}</td>
-                    <td>${bet.winnings}</td>
-                `;
-                tbody.appendChild(row);
-            });
+            if (game.status !== 'active') {
+                alert('Betting is closed for this game!');
+                return;
+            }
+            
+            user.balance -= amount;
+            
+            const odds = team === game.team1 ? game.odds1 :
+                        team === game.team2 ? game.odds2 : game.oddsDraw;
+            const potentialWin = amount * odds;
+            
+            const newBet = {
+                id: Math.max(...state.bets.map(b => b.id)) + 1,
+                userId,
+                gameId,
+                team,
+                amount,
+                status: 'pending',
+                potentialWin
+            };
+            
+            state.bets.push(newBet);
+            render();
         }
 
-        const supabaseUrl = 'https://xdkkuyllwbtqriiewkwe.supabase.co';
-const supabaseKey = 'your-anon-key'; // From Settings > API
-const supabase = createClient(supabaseUrl, supabaseKey);
+        // Components
+        function Login() {
+            let username = '';
+            let password = '';
+            
+            return `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="card p-8 rounded-lg shadow-lg w-full max-w-md">
+                        <div class="text-center mb-8">
+                            <h1 class="text-3xl font-bold mb-2">Betting Platform</h1>
+                            <p class="text-gray-500 dark:text-gray-400">Admin & User Dashboard</p>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Username</label>
+                                <input type="text" placeholder="Enter username" 
+                                    class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="username = this.value">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Password</label>
+                                <input type="password" placeholder="Enter password" 
+                                    class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="password = this.value">
+                            </div>
+                            
+                            <button onclick="login(username, password)" 
+                                class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
+                                Login
+                            </button>
+                        </div>
+                        
+                        <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <p>Admin: admin / admin123</p>
+                            <p>User: user1 / user123</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initApp);
+        function Sidebar() {
+            if (!state.currentUser) return '';
+            
+            const navItems = state.currentUser.role === 'admin' ? [
+                { id: 'user-management', label: 'User Management', icon: 'users' },
+                { id: 'game-management', label: 'Game Management', icon: 'trophy' },
+                { id: 'bets-view', label: 'Bets View', icon: 'list' }
+            ] : [
+                { id: 'games', label: 'Available Games', icon: 'gamepad' },
+                { id: 'betting-history', label: 'Betting History', icon: 'history' }
+            ];
+            
+            return `
+                <div class="sidebar fixed top-0 left-0 h-full w-64 z-40 card transform transition-transform duration-300 ease-in-out">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2 class="text-xl font-bold">Betting Platform</h2>
+                            <button onclick="state.sidebarOpen = false; render()" class="md:hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            ${navItems.map(item => `
+                                <button onclick="state.currentView = '${item.id}'; state.sidebarOpen = false; render()"
+                                    class="w-full flex items-center px-3 py-2 rounded-lg text-left transition hover:bg-gray-100 dark:hover:bg-gray-700 ${state.currentView === item.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''}">
+                                    <i class="fas fa-${item.icon} mr-3"></i>
+                                    ${item.label}
+                                </button>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <div class="mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                                <p class="text-sm font-medium">${state.currentUser.username}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${state.currentUser.role}</p>
+                            </div>
+                            
+                            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center px-3 py-2 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-${state.darkMode ? 'sun' : 'moon'} mr-2"></i>
+                                ${state.darkMode ? 'Light Mode' : 'Dark Mode'}
+                            </button>
+                            
+                            <button onclick="logout()" class="w-full flex items-center justify-center btn-danger px-3 py-2 rounded-lg hover:bg-red-600 transition">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function UserManagement() {
+            let newUsername = '';
+            let newPassword = '';
+            
+            return `
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold">User Management</h1>
+                        <p class="text-gray-500 dark:text-gray-400">Manage platform users</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="card p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Create New User</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Username</label>
+                                    <input type="text" placeholder="Enter username"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="newUsername = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Password</label>
+                                    <input type="password" placeholder="Enter password"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="newPassword = this.value">
+                                </div>
+                                <button onclick="createUser(newUsername, newPassword)"
+                                    class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
+                                    Create User
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">User List</h2>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                ${state.users.filter(u => u.role === 'user').map(user => `
+                                    <div class="flex items-center justify-between p-3 border rounded-lg">
+                                        <div>
+                                            <p class="font-medium">${user.username}</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Balance: ${user.balance} pts</p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button onclick="openEditUserModal(${user.id})"
+                                                class="btn-warning text-xs px-2 py-1 rounded">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="deleteUser(${user.id})"
+                                                class="btn-danger text-xs px-2 py-1 rounded">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Edit User Modal -->
+                <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+                    <div class="card p-6 rounded-lg w-full max-w-md">
+                        <h3 class="text-lg font-semibold mb-4">Edit User</h3>
+                        <div id="editUserForm"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openEditUserModal(userId) {
+            const user = state.users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('editUserForm').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Username</label>
+                        <input type="text" value="${user.username}" id="editUsername"
+                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" placeholder="New password (optional)" id="editPassword"
+                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Balance</label>
+                        <input type="number" value="${user.balance}" id="editBalance"
+                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="updateUser(${user.id}, document.getElementById('editUsername').value, document.getElementById('editPassword').value, parseFloat(document.getElementById('editBalance').value)); document.getElementById('editUserModal').classList.add('hidden')"
+                            class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
+                            Save
+                        </button>
+                        <button onclick="document.getElementById('editUserModal').classList.add('hidden')"
+                            class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('editUserModal').classList.remove('hidden');
+        }
+
+        function GameManagement() {
+            let title = '', team1 = '', odds1 = '', team2 = '', odds2 = '', oddsDraw = '';
+            
+            return `
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold">Game Management</h1>
+                        <p class="text-gray-500 dark:text-gray-400">Manage betting games and results</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="card p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Add New Game</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Match Title</label>
+                                    <input type="text" placeholder="e.g. Football Match"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="title = this.value">
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Team 1 Name</label>
+                                        <input type="text" placeholder="Team A"
+                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                            oninput="team1 = this.value">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Odds</label>
+                                        <input type="number" step="0.01" placeholder="1.80"
+                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                            oninput="odds1 = this.value">
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Team 2 Name</label>
+                                        <input type="text" placeholder="Team B"
+                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                            oninput="team2 = this.value">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Odds</label>
+                                        <input type="number" step="0.01" placeholder="2.10"
+                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                            oninput="odds2 = this.value">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Draw Odds</label>
+                                    <input type="number" step="0.01" placeholder="3.50"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="oddsDraw = this.value">
+                                </div>
+                                
+                                <button onclick="addGame(title, team1, odds1, team2, odds2, oddsDraw)"
+                                    class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
+                                    Add Game
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Active Games</h2>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                ${state.games.filter(g => g.status === 'active').map(game => `
+                                    <div class="border rounded-lg p-3">
+                                        <h3 class="font-medium">${game.title}</h3>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            ${game.team1} (${game.odds1}) vs ${game.team2} (${game.odds2}) | Draw (${game.oddsDraw})
+                                        </div>
+                                        <div class="mt-3 space-y-1">
+                                            <button onclick="setGameResult(${game.id}, 'team1')"
+                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                                ${game.team1} Wins
+                                            </button>
+                                            <button onclick="setGameResult(${game.id}, 'team2')"
+                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                                ${game.team2} Wins
+                                            </button>
+                                            <button onclick="setGameResult(${game.id}, 'draw')"
+                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                                Draw
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                
+                                ${state.games.filter(g => g.status === 'completed').length > 0 ? `
+                                    <div class="mt-4 pt-4 border-t">
+                                        <h3 class="text-sm font-medium mb-2">Completed Games</h3>
+                                        ${state.games.filter(g => g.status === 'completed').map(game => `
+                                            <div class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded mb-1">
+                                                ${game.title}: 
+                                                ${game.result === 'team1' ? game.team1 :
+                                                  game.result === 'team2' ? game.team2 : 'Draw'} Wins
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function BetsView() {
+            return `
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold">Bets Overview</h1>
+                        <p class="text-gray-500 dark:text-gray-400">View all user bets and outcomes</p>
+                    </div>
+                    
+                    <div class="card rounded-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 dark:bg-gray-800">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    ${state.bets.map(bet => {
+                                        const user = state.users.find(u => u.id === bet.userId);
+                                        const game = state.games.find(g => g.id === bet.gameId);
+                                        return `
+                                            <tr>
+                                                <td class="px-6 py-4 text-sm">${user?.username || 'Unknown'}</td>
+                                                <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.team}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.amount}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
+                                                <td class="px-6 py-4">
+                                                    <span class="px-2 py-1 text-xs rounded-full ${
+                                                        bet.status === 'pending' ? 'status-pending' :
+                                                        bet.status === 'won' ? 'status-won' : 'status-lost'
+                                                    }">
+                                                        ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function Games() {
+            return `
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold">Available Games</h1>
+                        <p class="text-gray-500 dark:text-gray-400">Place your bets on upcoming matches</p>
+                    </div>
+                    
+                    <div class="grid gap-6">
+                        ${state.games.filter(g => g.status === 'active').map(game => {
+                            let amount = 10;
+                            return `
+                                <div class="card rounded-lg overflow-hidden">
+                                    <div class="p-6">
+                                        <h2 class="text-xl font-semibold mb-4">${game.title}</h2>
+                                        
+                                        <div class="grid md:grid-cols-3 gap-4 mb-6">
+                                            <div class="text-center p-4 border rounded-lg">
+                                                <p class="font-medium">${game.team1}</p>
+                                                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${game.odds1}</p>
+                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team1}', ${game.odds1})"
+                                                    class="mt-3 w-full btn-primary py-1 px-3 rounded text-sm">
+                                                    Bet on ${game.team1}
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="text-center p-4 border rounded-lg">
+                                                <p class="font-medium">Draw</p>
+                                                <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${game.oddsDraw}</p>
+                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, 'Draw', ${game.oddsDraw})"
+                                                    class="mt-3 w-full btn-warning py-1 px-3 rounded text-sm">
+                                                    Bet on Draw
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="text-center p-4 border rounded-lg">
+                                                <p class="font-medium">${game.team2}</p>
+                                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">${game.odds2}</p>
+                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team2}', ${game.odds2})"
+                                                    class="mt-3 w-full btn-success py-1 px-3 rounded text-sm">
+                                                    Bet on ${game.team2}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center">
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                Your balance: <span class="font-medium">${state.currentUser.balance}</span> points
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                        
+                        ${state.games.filter(g => g.status === 'completed').length > 0 ? `
+                            <div class="card p-6 rounded-lg">
+                                <h3 class="text-lg font-semibold mb-4">Completed Games</h3>
+                                ${state.games.filter(g => g.status === 'completed').map(game => `
+                                    <div class="mb-3 p-3 border rounded-lg">
+                                        <p class="font-medium">${game.title}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Winner: <span class="font-medium">
+                                                ${game.result === 'team1' ? game.team1 :
+                                                  game.result === 'team2' ? game.team2 : 'Draw'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Bet Modal -->
+                    <div id="betModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+                        <div class="card p-6 rounded-lg w-full max-w-md">
+                            <h3 id="betModalTitle" class="text-lg font-semibold mb-4">Place Bet</h3>
+                            <div id="betForm"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openBetModal(userId, gameId, team, odds) {
+            const user = state.users.find(u => u.id === userId);
+            let amount = 10;
+            
+            document.getElementById('betModalTitle').textContent = `Bet on ${team}`;
+            document.getElementById('betForm').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Amount to Bet</label>
+                        <input type="number" min="1" max="${user.balance}" value="10" id="betAmount"
+                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                            oninput="amount = this.value; updatePotentialWin(${odds}, this.value)">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Available: ${user.balance} points</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <p class="text-sm">Potential Win: <span id="potentialWin" class="font-medium">${(10 * odds).toFixed(2)}</span> points</p>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="placeBet(${userId}, ${gameId}, '${team}', parseFloat(document.getElementById('betAmount').value)); document.getElementById('betModal').classList.add('hidden')"
+                            class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
+                            Place Bet
+                        </button>
+                        <button onclick="document.getElementById('betModal').classList.add('hidden')"
+                            class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('betModal').classList.remove('hidden');
+        }
+
+        function updatePotentialWin(odds, amount) {
+            const potentialWin = document.getElementById('potentialWin');
+            if (potentialWin) {
+                potentialWin.textContent = (parseFloat(amount) * odds).toFixed(2);
+            }
+        }
+
+        function BettingHistory() {
+            const userBets = state.bets.filter(bet => bet.userId === state.currentUser.id);
+            
+            return `
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold">Betting History</h1>
+                        <p class="text-gray-500 dark:text-gray-400">Track your past bets and outcomes</p>
+                    </div>
+                    
+                    <div class="card rounded-lg overflow-hidden">
+                        <div class="p-6 bg-gray-50 dark:bg-gray-800">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
+                                    <p class="text-2xl font-bold">${state.currentUser.balance}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 dark:bg-gray-800">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Result</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    ${userBets.length > 0 ? userBets.map(bet => {
+                                        const game = state.games.find(g => g.id === bet.gameId);
+                                        return `
+                                            <tr>
+                                                <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.team}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.amount}</td>
+                                                <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
+                                                <td class="px-6 py-4 text-sm">
+                                                    ${game?.result === 'team1' ? game.team1 :
+                                                      game?.result === 'team2' ? game.team2 :
+                                                      game?.result === 'draw' ? 'Draw' : 'Pending'}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span class="px-2 py-1 text-xs rounded-full ${
+                                                        bet.status === 'pending' ? 'status-pending' :
+                                                        bet.status === 'won' ? 'status-won' : 'status-lost'
+                                                    }">
+                                                        ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('') : `
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                                No bets placed yet
+                                            </td>
+                                        </tr>
+                                    `}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Main render function
+        function render() {
+            const app = document.getElementById('app');
+            
+            let content = '';
+            switch (state.currentView) {
+                case 'login':
+                    content = Login();
+                    break;
+                case 'user-management':
+                    content = UserManagement();
+                    break;
+                case 'game-management':
+                    content = GameManagement();
+                    break;
+                case 'bets-view':
+                    content = BetsView();
+                    break;
+                case 'games':
+                    content = Games();
+                    break;
+                case 'betting-history':
+                    content = BettingHistory();
+                    break;
+                default:
+                    content = Login();
+            }
+            
+            const sidebar = state.currentUser ? Sidebar() : '';
+            const menuButton = state.currentUser ? `
+                <button onclick="state.sidebarOpen = !state.sidebarOpen; render()" 
+                    class="md:hidden fixed top-4 left-4 z-30 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
+                    <i class="fas fa-bars"></i>
+                </button>
+            ` : '';
+            
+            app.innerHTML = `
+                ${sidebar}
+                ${menuButton}
+                <div class="${state.currentUser ? 'md:ml-64' : ''} min-h-screen transition-all duration-300">
+                    ${content}
+                </div>
+            `;
+        }
+
+        // Initialize app
+        render();
     </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 </body>
 </html>
