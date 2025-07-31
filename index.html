@@ -87,765 +87,730 @@
 </head>
 <body class="light-mode">
     <div id="app"></div>
+<script>
+    // State management
+    const state = {
+        currentUser: null,
+        darkMode: false,
+        users: [
+            { id: 1, username: 'admin', password: 'admin123', role: 'admin', balance: 1000 },
+        ],
+        games: [],
+        bets: [],
+        currentView: 'login',
+        sidebarOpen: false
+    };
 
-    <script>
-        // State management
-        const state = {
-            currentUser: null,
-            darkMode: false,
-            users: [
-                { id: 1, username: 'admin', password: 'admin123', role: 'admin', balance: 1000 },
-            ],
-            games: [],
-            bets: [],
+    // Toggle dark mode
+    function toggleDarkMode() {
+        state.darkMode = !state.darkMode;
+        document.body.className = state.darkMode ? 'dark-mode' : 'light-mode';
+        render();
+    }
 
-            currentView: 'login',
-            sidebarOpen: false
+    // Login function
+    function login(username, password) {
+        const user = state.users.find(u => u.username === username && u.password === password);
+        if (user) {
+            state.currentUser = user;
+            state.currentView = user.role === 'admin' ? 'user-management' : 'games';
+            state.sidebarOpen = false; // Start with sidebar closed
+            render();
+        } else {
+            alert('Invalid credentials!');
+        }
+    }
+
+    // Logout function
+    function logout() {
+        state.currentUser = null;
+        state.currentView = 'login';
+        state.sidebarOpen = false;
+        render();
+    }
+
+    // Admin functions
+    function createUser(username, password) {
+        const userExists = state.users.some(u => u.username === username);
+        if (userExists) {
+            alert('Username already exists!');
+            return;
+        }
+        const newUser = {
+            id: Math.max(...state.users.map(u => u.id)) + 1,
+            username,
+            password,
+            role: 'user',
+            balance: 0
         };
+        state.users.push(newUser);
+        render();
+    }
 
-        // Toggle dark mode
-        function toggleDarkMode() {
-            state.darkMode = !state.darkMode;
-            document.body.className = state.darkMode ? 'dark-mode' : 'light-mode';
+    function deleteUser(userId) {
+        if (confirm('Are you sure you want to delete this user?')) {
+            state.users = state.users.filter(u => u.id !== userId);
+            state.bets = state.bets.filter(b => b.userId !== userId);
             render();
         }
+    }
 
-        // Login function
-        function login(username, password) {
-            const user = state.users.find(u => u.username === username && u.password === password);
-            if (user) {
-                state.currentUser = user;
-                state.currentView = user.role === 'admin' ? 'user-management' : 'games';
-                render();
-            } else {
-                alert('Invalid credentials!');
-            }
-        }
-
-        // Logout function
-        function logout() {
-            state.currentUser = null;
-            state.currentView = 'login';
+    function updateUser(userId, username, password, balance) {
+        const user = state.users.find(u => u.id === userId);
+        if (user) {
+            if (username) user.username = username;
+            if (password) user.password = password;
+            if (balance !== undefined) user.balance = balance;
             render();
         }
+    }
 
-        // Admin functions
-        function createUser(username, password) {
-            const userExists = state.users.some(u => u.username === username);
-            if (userExists) {
-                alert('Username already exists!');
-                return;
-            }
-            const newUser = {
-                id: Math.max(...state.users.map(u => u.id)) + 1,
-                username,
-                password,
-                role: 'user',
-                balance: 0
-            };
-            state.users.push(newUser);
+    function addGame(title, team1, odds1, team2, odds2, oddsDraw) {
+        const newGame = {
+            id: Math.max(...state.games.map(g => g.id)) + 1,
+            title,
+            team1,
+            odds1: parseFloat(odds1),
+            team2,
+            odds2: parseFloat(odds2),
+            oddsDraw: parseFloat(oddsDraw),
+            result: null,
+            status: 'active'
+        };
+        state.games.push(newGame);
+        render();
+    }
+
+    function setGameResult(gameId, result) {
+        const game = state.games.find(g => g.id === gameId);
+        if (game) {
+            game.result = result;
+            game.status = 'completed';
+            state.bets
+                .filter(bet => bet.gameId === gameId)
+                .forEach(bet => {
+                    if ((result === 'team1' && bet.team === game.team1) ||
+                        (result === 'team2' && bet.team === game.team2) ||
+                        (result === 'draw' && bet.team === 'Draw')) {
+                        bet.status = 'won';
+                        const user = state.users.find(u => u.id === bet.userId);
+                        const odds = result === 'team1' ? game.odds1 :
+                                   result === 'team2' ? game.odds2 : game.oddsDraw;
+                        user.balance += bet.amount * odds;
+                    } else {
+                        bet.status = 'lost';
+                    }
+                });
             render();
         }
+    }
 
-        function deleteUser(userId) {
-            if (confirm('Are you sure you want to delete this user?')) {
-                state.users = state.users.filter(u => u.id !== userId);
-                state.bets = state.bets.filter(b => b.userId !== userId);
-                render();
-            }
+    // User functions
+    function placeBet(userId, gameId, team, amount) {
+        const user = state.users.find(u => u.id === userId);
+        const game = state.games.find(g => g.id === gameId);
+        if (user.balance < amount) {
+            alert('Insufficient balance!');
+            return;
         }
-
-        function updateUser(userId, username, password, balance) {
-            const user = state.users.find(u => u.id === userId);
-            if (user) {
-                if (username) user.username = username;
-                if (password) user.password = password;
-                if (balance !== undefined) user.balance = balance;
-                render();
-            }
+        if (game.status !== 'active') {
+            alert('Betting is closed for this game!');
+            return;
         }
+        user.balance -= amount;
+        const odds = team === game.team1 ? game.odds1 :
+                    team === game.team2 ? game.odds2 : game.oddsDraw;
+        const potentialWin = amount * odds;
+        const newBet = {
+            id: Math.max(...state.bets.map(b => b.id)) + 1,
+            userId,
+            gameId,
+            team,
+            amount,
+            status: 'pending',
+            potentialWin
+        };
+        state.bets.push(newBet);
+        render();
+    }
 
-        function addGame(title, team1, odds1, team2, odds2, oddsDraw) {
-            const newGame = {
-                id: Math.max(...state.games.map(g => g.id)) + 1,
-                title,
-                team1,
-                odds1: parseFloat(odds1),
-                team2,
-                odds2: parseFloat(odds2),
-                oddsDraw: parseFloat(oddsDraw),
-                result: null,
-                status: 'active'
-            };
-            state.games.push(newGame);
-            render();
-        }
-
-        function setGameResult(gameId, result) {
-            const game = state.games.find(g => g.id === gameId);
-            if (game) {
-                game.result = result;
-                game.status = 'completed';
-                
-                // Update bets and user balances
-                state.bets
-                    .filter(bet => bet.gameId === gameId)
-                    .forEach(bet => {
-                        if ((result === 'team1' && bet.team === game.team1) ||
-                            (result === 'team2' && bet.team === game.team2) ||
-                            (result === 'draw' && bet.team === 'Draw')) {
-                            bet.status = 'won';
-                            const user = state.users.find(u => u.id === bet.userId);
-                            const odds = result === 'team1' ? game.odds1 :
-                                       result === 'team2' ? game.odds2 : game.oddsDraw;
-                            user.balance += bet.amount * odds;
-                        } else {
-                            bet.status = 'lost';
-                        }
-                    });
-                render();
-            }
-        }
-
-        // User functions
-        function placeBet(userId, gameId, team, amount) {
-            const user = state.users.find(u => u.id === userId);
-            const game = state.games.find(g => g.id === gameId);
-            
-            if (user.balance < amount) {
-                alert('Insufficient balance!');
-                return;
-            }
-            
-            if (game.status !== 'active') {
-                alert('Betting is closed for this game!');
-                return;
-            }
-            
-            user.balance -= amount;
-            
-            const odds = team === game.team1 ? game.odds1 :
-                        team === game.team2 ? game.odds2 : game.oddsDraw;
-            const potentialWin = amount * odds;
-            
-            const newBet = {
-                id: Math.max(...state.bets.map(b => b.id)) + 1,
-                userId,
-                gameId,
-                team,
-                amount,
-                status: 'pending',
-                potentialWin
-            };
-            
-            state.bets.push(newBet);
-            render();
-        }
-
-        // Components
-        function Login() {
-            let username = '';
-            let password = '';
-            
-            return `
-                <div class="min-h-screen flex items-center justify-center p-4">
-                    <div class="card p-8 rounded-lg shadow-lg w-full max-w-md">
-                        <div class="text-center mb-8">
-                            <h1 class="text-3xl font-bold mb-2">Betting Platform</h1>
-                            <p class="text-gray-500 dark:text-gray-400">Admin & User Dashboard</p>
+    // Components
+    function Login() {
+        let username = '';
+        let password = '';
+        return `
+            <div class="min-h-screen flex items-center justify-center p-4">
+                <div class="card p-8 rounded-lg shadow-lg w-full max-w-md">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold mb-2">Betting Platform</h1>
+                        <p class="text-gray-500 dark:text-gray-400">Admin & User Dashboard</p>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Username</label>
+                            <input type="text" placeholder="Enter username" 
+                                class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                oninput="username = this.value">
                         </div>
-                        
-                        <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Password</label>
+                            <input type="password" placeholder="Enter password" 
+                                class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                oninput="password = this.value">
+                        </div>
+                        <button onclick="login(username, password)" 
+                            class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
+                            Login
+                        </button>
+                    </div>
+                    <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <p>Admin: admin / admin123</p>
+                        <p>User: user1 / user123</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function Sidebar() {
+        if (!state.currentUser) return '';
+        const navItems = state.currentUser.role === 'admin' ? [
+            { id: 'user-management', label: 'User Management', icon: 'users' },
+            { id: 'game-management', label: 'Game Management', icon: 'trophy' },
+            { id: 'bets-view', label: 'Bets View', icon: 'list' }
+        ] : [
+            { id: 'games', label: 'Available Games', icon: 'gamepad' },
+            { id: 'betting-history', label: 'Betting History', icon: 'history' }
+        ];
+        return `
+            <div class="sidebar ${state.sidebarOpen ? 'active' : ''} fixed top-0 left-0 h-full w-64 z-40 card transform transition-transform duration-300 ease-in-out">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-xl font-bold">Betting Platform</h2>
+                        <button onclick="closeSidebar()" class="md:hidden text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${navItems.map(item => `
+                            <button onclick="state.currentView = '${item.id}'; closeSidebar()"
+                                class="w-full flex items-center px-3 py-2 rounded-lg text-left transition hover:bg-gray-100 dark:hover:bg-gray-700 ${state.currentView === item.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''}">
+                                <i class="fas fa-${item.icon} mr-3"></i>
+                                ${item.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="absolute bottom-6 left-6 right-6">
+                        <div class="mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                            <p class="text-sm font-medium">${state.currentUser.username}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${state.currentUser.role}</p>
+                        </div>
+                        <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center px-3 py-2 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <i class="fas fa-${state.darkMode ? 'sun' : 'moon'} mr-2"></i>
+                            ${state.darkMode ? 'Light Mode' : 'Dark Mode'}
+                        </button>
+                        <button onclick="logout()" class="w-full flex items-center justify-center btn-danger px-3 py-2 rounded-lg hover:bg-red-600 transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Helper to close sidebar
+    function closeSidebar() {
+        state.sidebarOpen = false;
+        render();
+    }
+
+    function UserManagement() {
+        let newUsername = '';
+        let newPassword = '';
+        return `
+            <div class="p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">User Management</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Manage platform users</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">Create New User</h2>
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium mb-2">Username</label>
-                                <input type="text" placeholder="Enter username" 
-                                    class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                    oninput="username = this.value">
+                                <label class="block text-sm font-medium mb-1">Username</label>
+                                <input type="text" placeholder="Enter username"
+                                    class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="newUsername = this.value">
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium mb-2">Password</label>
-                                <input type="password" placeholder="Enter password" 
-                                    class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                    oninput="password = this.value">
+                                <label class="block text-sm font-medium mb-1">Password</label>
+                                <input type="password" placeholder="Enter password"
+                                    class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="newPassword = this.value">
                             </div>
-                            
-                            <button onclick="login(username, password)" 
+                            <button onclick="createUser(newUsername, newPassword)"
                                 class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
-                                Login
+                                Create User
                             </button>
                         </div>
-                        
-                        <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                            <p>Admin: admin / admin123</p>
-                            <p>User: user1 / user123</p>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">User List</h2>
+                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                            ${state.users.filter(u => u.role === 'user').map(user => `
+                                <div class="flex items-center justify-between p-3 border rounded-lg">
+                                    <div>
+                                        <p class="font-medium">${user.username}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Balance: ${user.balance} pts</p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="openEditUserModal(${user.id})"
+                                            class="btn-warning text-xs px-2 py-1 rounded">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="deleteUser(${user.id})"
+                                            class="btn-danger text-xs px-2 py-1 rounded">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
-            `;
-        }
+            </div>
+            <!-- Edit User Modal -->
+            <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="card p-6 rounded-lg w-full max-w-md">
+                    <h3 class="text-lg font-semibold mb-4">Edit User</h3>
+                    <div id="editUserForm"></div>
+                </div>
+            </div>
+        `;
+    }
 
-        function Sidebar() {
-    if (!state.currentUser) return '';
-    const navItems = state.currentUser.role === 'admin' ? [
-        { id: 'user-management', label: 'User Management', icon: 'users' },
-        { id: 'game-management', label: 'Game Management', icon: 'trophy' },
-        { id: 'bets-view', label: 'Bets View', icon: 'list' }
-    ] : [
-        { id: 'games', label: 'Available Games', icon: 'gamepad' },
-        { id: 'betting-history', label: 'Betting History', icon: 'history' }
-    ];
-    return `
-        <div class="sidebar ${state.sidebarOpen ? 'active' : ''} fixed top-0 left-0 h-full w-64 z-40 card transform transition-transform duration-300 ease-in-out">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-xl font-bold">Betting Platform</h2>
-                    <button onclick="state.sidebarOpen = false; render()" class="md:hidden text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        <i class="fas fa-times"></i>
-                    </button>
+    function openEditUserModal(userId) {
+        const user = state.users.find(u => u.id === userId);
+        if (!user) return;
+        document.getElementById('editUserForm').innerHTML = `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" value="${user.username}" id="editUsername"
+                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
-                <div class="space-y-2">
-                    ${navItems.map(item => `
-                        <button onclick="state.currentView = '${item.id}'; state.sidebarOpen = false; render()"
-                            class="w-full flex items-center px-3 py-2 rounded-lg text-left transition hover:bg-gray-100 dark:hover:bg-gray-700 ${state.currentView === item.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''}">
-                            <i class="fas fa-${item.icon} mr-3"></i>
-                            ${item.label}
-                        </button>
-                    `).join('')}
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" placeholder="New password (optional)" id="editPassword"
+                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
-                <div class="absolute bottom-6 left-6 right-6">
-                    <div class="mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
-                        <p class="text-sm font-medium">${state.currentUser.username}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">${state.currentUser.role}</p>
-                    </div>
-                    <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center px-3 py-2 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <i class="fas fa-${state.darkMode ? 'sun' : 'moon'} mr-2"></i>
-                        ${state.darkMode ? 'Light Mode' : 'Dark Mode'}
+                <div>
+                    <label class="block text-sm font-medium mb-1">Balance</label>
+                    <input type="number" value="${user.balance}" id="editBalance"
+                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="updateUser(${user.id}, document.getElementById('editUsername').value, document.getElementById('editPassword').value, parseFloat(document.getElementById('editBalance').value)); document.getElementById('editUserModal').classList.add('hidden')"
+                        class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
+                        Save
                     </button>
-                    <button onclick="logout()" class="w-full flex items-center justify-center btn-danger px-3 py-2 rounded-lg hover:bg-red-600 transition">
-                        <i class="fas fa-sign-out-alt mr-2"></i>
-                        Logout
+                    <button onclick="document.getElementById('editUserModal').classList.add('hidden')"
+                        class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
+                        Cancel
                     </button>
                 </div>
             </div>
-        </div>
-    `;
-}
-        function UserManagement() {
-            let newUsername = '';
-            let newPassword = '';
-            
-            return `
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h1 class="text-2xl font-bold">User Management</h1>
-                        <p class="text-gray-500 dark:text-gray-400">Manage platform users</p>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="card p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Create New User</h2>
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Username</label>
-                                    <input type="text" placeholder="Enter username"
-                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                        oninput="newUsername = this.value">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Password</label>
-                                    <input type="password" placeholder="Enter password"
-                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                        oninput="newPassword = this.value">
-                                </div>
-                                <button onclick="createUser(newUsername, newPassword)"
-                                    class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
-                                    Create User
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="card p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">User List</h2>
-                            <div class="space-y-3 max-h-96 overflow-y-auto">
-                                ${state.users.filter(u => u.role === 'user').map(user => `
-                                    <div class="flex items-center justify-between p-3 border rounded-lg">
-                                        <div>
-                                            <p class="font-medium">${user.username}</p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Balance: ${user.balance} pts</p>
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <button onclick="openEditUserModal(${user.id})"
-                                                class="btn-warning text-xs px-2 py-1 rounded">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button onclick="deleteUser(${user.id})"
-                                                class="btn-danger text-xs px-2 py-1 rounded">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Edit User Modal -->
-                <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-                    <div class="card p-6 rounded-lg w-full max-w-md">
-                        <h3 class="text-lg font-semibold mb-4">Edit User</h3>
-                        <div id="editUserForm"></div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function openEditUserModal(userId) {
-            const user = state.users.find(u => u.id === userId);
-            if (!user) return;
-            
-            document.getElementById('editUserForm').innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Username</label>
-                        <input type="text" value="${user.username}" id="editUsername"
-                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Password</label>
-                        <input type="password" placeholder="New password (optional)" id="editPassword"
-                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Balance</label>
-                        <input type="number" value="${user.balance}" id="editBalance"
-                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="updateUser(${user.id}, document.getElementById('editUsername').value, document.getElementById('editPassword').value, parseFloat(document.getElementById('editBalance').value)); document.getElementById('editUserModal').classList.add('hidden')"
-                            class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
-                            Save
-                        </button>
-                        <button onclick="document.getElementById('editUserModal').classList.add('hidden')"
-                            class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('editUserModal').classList.remove('hidden');
-        }
-
-        function GameManagement() {
-            let title = '', team1 = '', odds1 = '', team2 = '', odds2 = '', oddsDraw = '';
-            
-            return `
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h1 class="text-2xl font-bold">Game Management</h1>
-                        <p class="text-gray-500 dark:text-gray-400">Manage betting games and results</p>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="card p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Add New Game</h2>
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Match Title</label>
-                                    <input type="text" placeholder="e.g. Football Match"
-                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                        oninput="title = this.value">
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Team 1 Name</label>
-                                        <input type="text" placeholder="Team A"
-                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                            oninput="team1 = this.value">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Odds</label>
-                                        <input type="number" step="0.01" placeholder="1.80"
-                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                            oninput="odds1 = this.value">
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Team 2 Name</label>
-                                        <input type="text" placeholder="Team B"
-                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                            oninput="team2 = this.value">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Odds</label>
-                                        <input type="number" step="0.01" placeholder="2.10"
-                                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                            oninput="odds2 = this.value">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Draw Odds</label>
-                                    <input type="number" step="0.01" placeholder="3.50"
-                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                                        oninput="oddsDraw = this.value">
-                                </div>
-                                
-                                <button onclick="addGame(title, team1, odds1, team2, odds2, oddsDraw)"
-                                    class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
-                                    Add Game
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="card p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Active Games</h2>
-                            <div class="space-y-3 max-h-96 overflow-y-auto">
-                                ${state.games.filter(g => g.status === 'active').map(game => `
-                                    <div class="border rounded-lg p-3">
-                                        <h3 class="font-medium">${game.title}</h3>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                            ${game.team1} (${game.odds1}) vs ${game.team2} (${game.odds2}) | Draw (${game.oddsDraw})
-                                        </div>
-                                        <div class="mt-3 space-y-1">
-                                            <button onclick="setGameResult(${game.id}, 'team1')"
-                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
-                                                ${game.team1} Wins
-                                            </button>
-                                            <button onclick="setGameResult(${game.id}, 'team2')"
-                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
-                                                ${game.team2} Wins
-                                            </button>
-                                            <button onclick="setGameResult(${game.id}, 'draw')"
-                                                class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
-                                                Draw
-                                            </button>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                                
-                                ${state.games.filter(g => g.status === 'completed').length > 0 ? `
-                                    <div class="mt-4 pt-4 border-t">
-                                        <h3 class="text-sm font-medium mb-2">Completed Games</h3>
-                                        ${state.games.filter(g => g.status === 'completed').map(game => `
-                                            <div class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded mb-1">
-                                                ${game.title}: 
-                                                ${game.result === 'team1' ? game.team1 :
-                                                  game.result === 'team2' ? game.team2 : 'Draw'} Wins
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function BetsView() {
-            return `
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h1 class="text-2xl font-bold">Bets Overview</h1>
-                        <p class="text-gray-500 dark:text-gray-400">View all user bets and outcomes</p>
-                    </div>
-                    
-                    <div class="card rounded-lg overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50 dark:bg-gray-800">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">User</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    ${state.bets.map(bet => {
-                                        const user = state.users.find(u => u.id === bet.userId);
-                                        const game = state.games.find(g => g.id === bet.gameId);
-                                        return `
-                                            <tr>
-                                                <td class="px-6 py-4 text-sm">${user?.username || 'Unknown'}</td>
-                                                <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.team}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.amount}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
-                                                <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs rounded-full ${
-                                                        bet.status === 'pending' ? 'status-pending' :
-                                                        bet.status === 'won' ? 'status-won' : 'status-lost'
-                                                    }">
-                                                        ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function Games() {
-            return `
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h1 class="text-2xl font-bold">Available Games</h1>
-                        <p class="text-gray-500 dark:text-gray-400">Place your bets on upcoming matches</p>
-                    </div>
-                    
-                    <div class="grid gap-6">
-                        ${state.games.filter(g => g.status === 'active').map(game => {
-                            let amount = 10;
-                            return `
-                                <div class="card rounded-lg overflow-hidden">
-                                    <div class="p-6">
-                                        <h2 class="text-xl font-semibold mb-4">${game.title}</h2>
-                                        
-                                        <div class="grid md:grid-cols-3 gap-4 mb-6">
-                                            <div class="text-center p-4 border rounded-lg">
-                                                <p class="font-medium">${game.team1}</p>
-                                                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${game.odds1}</p>
-                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team1}', ${game.odds1})"
-                                                    class="mt-3 w-full btn-primary py-1 px-3 rounded text-sm">
-                                                    Bet on ${game.team1}
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="text-center p-4 border rounded-lg">
-                                                <p class="font-medium">Draw</p>
-                                                <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${game.oddsDraw}</p>
-                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, 'Draw', ${game.oddsDraw})"
-                                                    class="mt-3 w-full btn-warning py-1 px-3 rounded text-sm">
-                                                    Bet on Draw
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="text-center p-4 border rounded-lg">
-                                                <p class="font-medium">${game.team2}</p>
-                                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">${game.odds2}</p>
-                                                <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team2}', ${game.odds2})"
-                                                    class="mt-3 w-full btn-success py-1 px-3 rounded text-sm">
-                                                    Bet on ${game.team2}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="text-center">
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                Your balance: <span class="font-medium">${state.currentUser.balance}</span> points
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                        
-                        ${state.games.filter(g => g.status === 'completed').length > 0 ? `
-                            <div class="card p-6 rounded-lg">
-                                <h3 class="text-lg font-semibold mb-4">Completed Games</h3>
-                                ${state.games.filter(g => g.status === 'completed').map(game => `
-                                    <div class="mb-3 p-3 border rounded-lg">
-                                        <p class="font-medium">${game.title}</p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            Winner: <span class="font-medium">
-                                                ${game.result === 'team1' ? game.team1 :
-                                                  game.result === 'team2' ? game.team2 : 'Draw'}
-                                            </span>
-                                        </p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                    
-                    <!-- Bet Modal -->
-                    <div id="betModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-                        <div class="card p-6 rounded-lg w-full max-w-md">
-                            <h3 id="betModalTitle" class="text-lg font-semibold mb-4">Place Bet</h3>
-                            <div id="betForm"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function openBetModal(userId, gameId, team, odds) {
-            const user = state.users.find(u => u.id === userId);
-            let amount = 10;
-            
-            document.getElementById('betModalTitle').textContent = `Bet on ${team}`;
-            document.getElementById('betForm').innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Amount to Bet</label>
-                        <input type="number" min="1" max="${user.balance}" value="10" id="betAmount"
-                            class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
-                            oninput="amount = this.value; updatePotentialWin(${odds}, this.value)">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Available: ${user.balance} points</p>
-                    </div>
-                    
-                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                        <p class="text-sm">Potential Win: <span id="potentialWin" class="font-medium">${(10 * odds).toFixed(2)}</span> points</p>
-                    </div>
-                    
-                    <div class="flex space-x-2">
-                        <button onclick="placeBet(${userId}, ${gameId}, '${team}', parseFloat(document.getElementById('betAmount').value)); document.getElementById('betModal').classList.add('hidden')"
-                            class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
-                            Place Bet
-                        </button>
-                        <button onclick="document.getElementById('betModal').classList.add('hidden')"
-                            class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('betModal').classList.remove('hidden');
-        }
-
-        function updatePotentialWin(odds, amount) {
-            const potentialWin = document.getElementById('potentialWin');
-            if (potentialWin) {
-                potentialWin.textContent = (parseFloat(amount) * odds).toFixed(2);
-            }
-        }
-
-        function BettingHistory() {
-            const userBets = state.bets.filter(bet => bet.userId === state.currentUser.id);
-            
-            return `
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h1 class="text-2xl font-bold">Betting History</h1>
-                        <p class="text-gray-500 dark:text-gray-400">Track your past bets and outcomes</p>
-                    </div>
-                    
-                    <div class="card rounded-lg overflow-hidden">
-                        <div class="p-6 bg-gray-50 dark:bg-gray-800">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
-                                    <p class="text-2xl font-bold">${state.currentUser.balance}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50 dark:bg-gray-800">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Result</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    ${userBets.length > 0 ? userBets.map(bet => {
-                                        const game = state.games.find(g => g.id === bet.gameId);
-                                        return `
-                                            <tr>
-                                                <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.team}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.amount}</td>
-                                                <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
-                                                <td class="px-6 py-4 text-sm">
-                                                    ${game?.result === 'team1' ? game.team1 :
-                                                      game?.result === 'team2' ? game.team2 :
-                                                      game?.result === 'draw' ? 'Draw' : 'Pending'}
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs rounded-full ${
-                                                        bet.status === 'pending' ? 'status-pending' :
-                                                        bet.status === 'won' ? 'status-won' : 'status-lost'
-                                                    }">
-                                                        ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        `;
-                                    }).join('') : `
-                                        <tr>
-                                            <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                                No bets placed yet
-                                            </td>
-                                        </tr>
-                                    `}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Main render function
-        function render() {
-    const app = document.getElementById('app');
-    let content = '';
-    switch (state.currentView) {
-        case 'login':
-            content = Login();
-            break;
-        case 'user-management':
-            content = UserManagement();
-            break;
-        case 'game-management':
-            content = GameManagement();
-            break;
-        case 'bets-view':
-            content = BetsView();
-            break;
-        case 'games':
-            content = Games();
-            break;
-        case 'betting-history':
-            content = BettingHistory();
-            break;
-        default:
-            content = Login();
+        `;
+        document.getElementById('editUserModal').classList.remove('hidden');
     }
 
-    const sidebar = state.currentUser ? Sidebar() : '';
-    const menuButton = state.currentUser ? `
-        <button onclick="state.sidebarOpen = !state.sidebarOpen; render()" 
-            class="md:hidden fixed top-4 left-4 z-30 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
-            <i class="fas fa-bars"></i>
-        </button>
-    ` : '';
+    function GameManagement() {
+        let title = '', team1 = '', odds1 = '', team2 = '', odds2 = '', oddsDraw = '';
+        return `
+            <div class="p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">Game Management</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Manage betting games and results</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">Add New Game</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Match Title</label>
+                                <input type="text" placeholder="e.g. Football Match"
+                                    class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="title = this.value">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Team 1 Name</label>
+                                    <input type="text" placeholder="Team A"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="team1 = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Odds</label>
+                                    <input type="number" step="0.01" placeholder="1.80"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="odds1 = this.value">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Team 2 Name</label>
+                                    <input type="text" placeholder="Team B"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="team2 = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Odds</label>
+                                    <input type="number" step="0.01" placeholder="2.10"
+                                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                        oninput="odds2 = this.value">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Draw Odds</label>
+                                <input type="number" step="0.01" placeholder="3.50"
+                                    class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                                    oninput="oddsDraw = this.value">
+                            </div>
+                            <button onclick="addGame(title, team1, odds1, team2, odds2, oddsDraw)"
+                                class="w-full btn-primary py-2 px-4 rounded-lg font-medium hover:bg-blue-600 transition">
+                                Add Game
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">Active Games</h2>
+                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                            ${state.games.filter(g => g.status === 'active').map(game => `
+                                <div class="border rounded-lg p-3">
+                                    <h3 class="font-medium">${game.title}</h3>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        ${game.team1} (${game.odds1}) vs ${game.team2} (${game.odds2}) | Draw (${game.oddsDraw})
+                                    </div>
+                                    <div class="mt-3 space-y-1">
+                                        <button onclick="setGameResult(${game.id}, 'team1')"
+                                            class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                            ${game.team1} Wins
+                                        </button>
+                                        <button onclick="setGameResult(${game.id}, 'team2')"
+                                            class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                            ${game.team2} Wins
+                                        </button>
+                                        <button onclick="setGameResult(${game.id}, 'draw')"
+                                            class="w-full text-left px-2 py-1 text-xs rounded hover:bg-green-100 dark:hover:bg-green-900/30">
+                                            Draw
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            ${state.games.filter(g => g.status === 'completed').length > 0 ? `
+                                <div class="mt-4 pt-4 border-t">
+                                    <h3 class="text-sm font-medium mb-2">Completed Games</h3>
+                                    ${state.games.filter(g => g.status === 'completed').map(game => `
+                                        <div class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded mb-1">
+                                            ${game.title}: 
+                                            ${game.result === 'team1' ? game.team1 :
+                                              game.result === 'team2' ? game.team2 : 'Draw'} Wins
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
-    // Add an overlay when sidebar is open
-    const overlay = state.currentUser && state.sidebarOpen ? `
-        <div onclick="state.sidebarOpen = false; render()"
-             class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"></div>
-    ` : '';
+    function BetsView() {
+        return `
+            <div class="p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">Bets Overview</h1>
+                    <p class="text-gray-500 dark:text-gray-400">View all user bets and outcomes</p>
+                </div>
+                <div class="card rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                ${state.bets.map(bet => {
+                                    const user = state.users.find(u => u.id === bet.userId);
+                                    const game = state.games.find(g => g.id === bet.gameId);
+                                    return `
+                                        <tr>
+                                            <td class="px-6 py-4 text-sm">${user?.username || 'Unknown'}</td>
+                                            <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.team}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.amount}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 text-xs rounded-full ${
+                                                    bet.status === 'pending' ? 'status-pending' :
+                                                    bet.status === 'won' ? 'status-won' : 'status-lost'
+                                                }">
+                                                    ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
-    app.innerHTML = `
-        ${menuButton}
-        ${sidebar}
-        ${overlay}
-        <div class="${state.currentUser ? 'md:ml-64' : ''} min-h-screen transition-all duration-300">
-            ${content}
-        </div>
-    `;
-}
-        // Initialize app
-        render();
-    </script>
+    function Games() {
+        return `
+            <div class="p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">Available Games</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Place your bets on upcoming matches</p>
+                </div>
+                <div class="grid gap-6">
+                    ${state.games.filter(g => g.status === 'active').map(game => {
+                        return `
+                            <div class="card rounded-lg overflow-hidden">
+                                <div class="p-6">
+                                    <h2 class="text-xl font-semibold mb-4">${game.title}</h2>
+                                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                                        <div class="text-center p-4 border rounded-lg">
+                                            <p class="font-medium">${game.team1}</p>
+                                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${game.odds1}</p>
+                                            <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team1}', ${game.odds1})"
+                                                class="mt-3 w-full btn-primary py-1 px-3 rounded text-sm">
+                                                Bet on ${game.team1}
+                                            </button>
+                                        </div>
+                                        <div class="text-center p-4 border rounded-lg">
+                                            <p class="font-medium">Draw</p>
+                                            <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${game.oddsDraw}</p>
+                                            <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, 'Draw', ${game.oddsDraw})"
+                                                class="mt-3 w-full btn-warning py-1 px-3 rounded text-sm">
+                                                Bet on Draw
+                                            </button>
+                                        </div>
+                                        <div class="text-center p-4 border rounded-lg">
+                                            <p class="font-medium">${game.team2}</p>
+                                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">${game.odds2}</p>
+                                            <button onclick="openBetModal(${state.currentUser.id}, ${game.id}, '${game.team2}', ${game.odds2})"
+                                                class="mt-3 w-full btn-success py-1 px-3 rounded text-sm">
+                                                Bet on ${game.team2}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Your balance: <span class="font-medium">${state.currentUser.balance}</span> points
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    ${state.games.filter(g => g.status === 'completed').length > 0 ? `
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold mb-4">Completed Games</h3>
+                            ${state.games.filter(g => g.status === 'completed').map(game => `
+                                <div class="mb-3 p-3 border rounded-lg">
+                                    <p class="font-medium">${game.title}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Winner: <span class="font-medium">
+                                            ${game.result === 'team1' ? game.team1 :
+                                              game.result === 'team2' ? game.team2 : 'Draw'}
+                                        </span>
+                                    </p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+                <!-- Bet Modal -->
+                <div id="betModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+                    <div class="card p-6 rounded-lg w-full max-w-md">
+                        <h3 id="betModalTitle" class="text-lg font-semibold mb-4">Place Bet</h3>
+                        <div id="betForm"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function openBetModal(userId, gameId, team, odds) {
+        const user = state.users.find(u => u.id === userId);
+        document.getElementById('betModalTitle').textContent = `Bet on ${team}`;
+        document.getElementById('betForm').innerHTML = `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Amount to Bet</label>
+                    <input type="number" min="1" max="${user.balance}" value="10" id="betAmount"
+                        class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
+                        oninput="updatePotentialWin(${odds}, this.value)">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Available: ${user.balance} points</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                    <p class="text-sm">Potential Win: <span id="potentialWin" class="font-medium">${(10 * odds).toFixed(2)}</span> points</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="placeBet(${userId}, ${gameId}, '${team}', parseFloat(document.getElementById('betAmount').value)); document.getElementById('betModal').classList.add('hidden')"
+                        class="flex-1 btn-primary py-2 px-4 rounded-lg font-medium">
+                        Place Bet
+                    </button>
+                    <button onclick="document.getElementById('betModal').classList.add('hidden')"
+                        class="flex-1 btn-danger py-2 px-4 rounded-lg font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        updatePotentialWin(odds, 10);
+        document.getElementById('betModal').classList.remove('hidden');
+    }
+
+    function updatePotentialWin(odds, amount) {
+        const potentialWin = document.getElementById('potentialWin');
+        if (potentialWin) {
+            potentialWin.textContent = (parseFloat(amount) * odds).toFixed(2);
+        }
+    }
+
+    function BettingHistory() {
+        const userBets = state.bets.filter(bet => bet.userId === state.currentUser.id);
+        return `
+            <div class="p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">Betting History</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Track your past bets and outcomes</p>
+                </div>
+                <div class="card rounded-lg overflow-hidden">
+                    <div class="p-6 bg-gray-50 dark:bg-gray-800">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
+                                <p class="text-2xl font-bold">${state.currentUser.balance}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Game</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Team</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Potential Win</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Result</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                ${userBets.length > 0 ? userBets.map(bet => {
+                                    const game = state.games.find(g => g.id === bet.gameId);
+                                    return `
+                                        <tr>
+                                            <td class="px-6 py-4 text-sm">${game?.title || 'Unknown'}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.team}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.amount}</td>
+                                            <td class="px-6 py-4 text-sm">${bet.potentialWin.toFixed(2)}</td>
+                                            <td class="px-6 py-4 text-sm">
+                                                ${game?.result === 'team1' ? game.team1 :
+                                                  game?.result === 'team2' ? game.team2 :
+                                                  game?.result === 'draw' ? 'Draw' : 'Pending'}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 text-xs rounded-full ${
+                                                    bet.status === 'pending' ? 'status-pending' :
+                                                    bet.status === 'won' ? 'status-won' : 'status-lost'
+                                                }">
+                                                    ${bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('') : `
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            No bets placed yet
+                                        </td>
+                                    </tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Main render function
+    function render() {
+        const app = document.getElementById('app');
+        let content = '';
+        switch (state.currentView) {
+            case 'login':
+                content = Login();
+                break;
+            case 'user-management':
+                content = UserManagement();
+                break;
+            case 'game-management':
+                content = GameManagement();
+                break;
+            case 'bets-view':
+                content = BetsView();
+                break;
+            case 'games':
+                content = Games();
+                break;
+            case 'betting-history':
+                content = BettingHistory();
+                break;
+            default:
+                content = Login();
+        }
+
+        const sidebar = state.currentUser ? Sidebar() : '';
+        const menuButton = state.currentUser ? `
+            <button onclick="state.sidebarOpen = !state.sidebarOpen; render()" 
+                class="md:hidden fixed top-4 left-4 z-30 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
+                <i class="fas fa-bars"></i>
+            </button>
+        ` : '';
+
+        const overlay = state.currentUser && state.sidebarOpen ? `
+            <div onclick="closeSidebar()" class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"></div>
+        ` : '';
+
+        app.innerHTML = `
+            ${menuButton}
+            ${sidebar}
+            ${overlay}
+            <div class="${state.currentUser ? 'md:ml-64' : ''} min-h-screen transition-all duration-300">
+                ${content}
+            </div>
+        `;
+    }
+
+    // Initialize app
+    render();
+</script>
 </body>
 </html>
