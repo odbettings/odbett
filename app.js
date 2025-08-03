@@ -15,11 +15,7 @@ let currentRole = null;
 let currentPassword = null;
 
 darkModeToggle.addEventListener('change', () => {
-  if (darkModeToggle.checked) {
-    document.body.classList.add('dark');
-  } else {
-    document.body.classList.remove('dark');
-  }
+  document.body.classList.toggle('dark', darkModeToggle.checked);
 });
 
 loginBtn.addEventListener('click', async () => {
@@ -63,7 +59,25 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
-// ------- ADMIN SECTION --------
+// Logout buttons
+document.getElementById('logout-admin-btn').addEventListener('click', logout);
+document.getElementById('logout-user-btn').addEventListener('click', logout);
+
+function logout() {
+  currentUser = null;
+  currentRole = null;
+  currentPassword = null;
+
+  loginSection.classList.remove('hidden');
+  adminSection.classList.add('hidden');
+  userSection.classList.add('hidden');
+
+  usernameInput.value = '';
+  passwordInput.value = '';
+  loginError.textContent = '';
+}
+
+// -------- ADMIN SECTION --------
 
 document.getElementById('create-user-btn').addEventListener('click', async () => {
   const newUsername = document.getElementById('new-user').value.trim();
@@ -88,12 +102,10 @@ document.getElementById('create-user-btn').addEventListener('click', async () =>
       }),
     });
     const data = await res.json();
+    msg.textContent = res.ok ? 'User created' : data.error || 'Error creating user';
     if (res.ok) {
-      msg.textContent = 'User created';
       document.getElementById('new-user').value = '';
       document.getElementById('new-user-pass').value = '';
-    } else {
-      msg.textContent = data.error || 'Error creating user';
     }
   } catch {
     msg.textContent = 'Network error';
@@ -121,12 +133,8 @@ document.getElementById('delete-user-btn').addEventListener('click', async () =>
       }),
     });
     const data = await res.json();
-    if (res.ok) {
-      msg.textContent = 'User deleted';
-      document.getElementById('del-user').value = '';
-    } else {
-      msg.textContent = data.error || 'Error deleting user';
-    }
+    msg.textContent = res.ok ? 'User deleted' : data.error || 'Error deleting user';
+    if (res.ok) document.getElementById('del-user').value = '';
   } catch {
     msg.textContent = 'Network error';
   }
@@ -156,17 +164,17 @@ document.getElementById('adjust-points-btn').addEventListener('click', async () 
       body: JSON.stringify({
         username: currentUser,
         password: currentPassword,
-        username,
+        usernameToAdjust: username, // FIXED KEY
         amount,
       }),
     });
     const data = await res.json();
+    msg.textContent = res.ok
+      ? `Points updated. New points: ${data.newPoints}`
+      : data.error || 'Error adjusting points';
     if (res.ok) {
-      msg.textContent = `Points updated. New points: ${data.newPoints}`;
       document.getElementById('points-user').value = '';
       document.getElementById('points-amount').value = '';
-    } else {
-      msg.textContent = data.error || 'Error adjusting points';
     }
   } catch {
     msg.textContent = 'Network error';
@@ -204,12 +212,10 @@ document.getElementById('add-game-btn').addEventListener('click', async () => {
       }),
     });
     const data = await res.json();
+    msg.textContent = res.ok ? 'Game added' : data.error || 'Error adding game';
     if (res.ok) {
-      msg.textContent = 'Game added';
       clearGameForm();
       loadAdminGames();
-    } else {
-      msg.textContent = data.error || 'Error adding game';
     }
   } catch {
     msg.textContent = 'Network error';
@@ -265,12 +271,8 @@ document.getElementById('set-outcome-btn').addEventListener('click', async () =>
       }),
     });
     const data = await res.json();
-    if (res.ok) {
-      msg.textContent = 'Outcome set';
-      loadAdminGames();
-    } else {
-      msg.textContent = data.error || 'Error setting outcome';
-    }
+    msg.textContent = res.ok ? 'Outcome set' : data.error || 'Error setting outcome';
+    if (res.ok) loadAdminGames();
   } catch {
     msg.textContent = 'Network error';
   }
@@ -290,11 +292,7 @@ document.getElementById('view-bets-btn').addEventListener('click', async () => {
       }),
     });
     const data = await res.json();
-    if (res.ok) {
-      pre.textContent = JSON.stringify(data.usersBets, null, 2);
-    } else {
-      pre.textContent = data.error || 'Error fetching bets';
-    }
+    pre.textContent = res.ok ? JSON.stringify(data.usersBets, null, 2) : data.error || 'Error fetching bets';
   } catch {
     pre.textContent = 'Network error';
   }
@@ -309,12 +307,8 @@ async function loadUserData() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: currentUser, password: currentPassword }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      document.getElementById('user-points').textContent = data.points;
-    } else {
-      document.getElementById('user-points').textContent = 'N/A';
-    }
+    const data = await res.json();
+    document.getElementById('user-points').textContent = res.ok ? data.points : 'N/A';
   } catch {
     document.getElementById('user-points').textContent = 'Error';
   }
@@ -352,14 +346,13 @@ async function loadGamesForBetting() {
         }
       });
 
-      const betButtons = container.querySelectorAll('.place-bet-btn');
-      betButtons.forEach(btn => {
+      container.querySelectorAll('.place-bet-btn').forEach(btn => {
         btn.addEventListener('click', placeBetHandler);
       });
     } else {
       container.textContent = 'Failed to load games';
     }
-  } catch (err) {
+  } catch {
     container.textContent = 'Network error';
   }
 }
@@ -397,29 +390,13 @@ async function placeBetHandler(e) {
       }),
     });
     const data = await res.json();
+    msgDiv.textContent = res.ok ? 'Bet placed successfully' : data.error || 'Failed to place bet';
     if (res.ok) {
-      msgDiv.textContent = 'Bet placed successfully';
       pointsInput.value = '';
       select.value = '';
       loadUserData();
-    } else {
-      msgDiv.textContent = data.error || 'Failed to place bet';
     }
   } catch {
     msgDiv.textContent = 'Network error';
   }
-}
-
-function logout() {
-  currentUser = null;
-  currentRole = null;
-  currentPassword = null;
-
-  loginSection.classList.remove('hidden');
-  adminSection.classList.add('hidden');
-  userSection.classList.add('hidden');
-
-  usernameInput.value = '';
-  passwordInput.value = '';
-  loginError.textContent = '';
 }

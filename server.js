@@ -64,7 +64,7 @@ app.post('/api/admin/delete-user', checkAdminAuth, (req, res) => {
   res.json({ success: true });
 });
 
-// **Fixed this route: using usernameToAdjust to avoid collision with admin credentials**
+// ✅ FIXED: expect 'usernameToAdjust'
 app.post('/api/admin/adjust-points', checkAdminAuth, (req, res) => {
   const { usernameToAdjust, amount } = req.body;
   const db = readDB();
@@ -133,11 +133,6 @@ app.post('/api/admin/set-outcome', checkAdminAuth, (req, res) => {
 app.post('/api/admin/user-bets', checkAdminAuth, (req, res) => {
   const db = readDB();
   res.json({ usersBets: db.users });
-});
-
-app.post('/api/admin/users', checkAdminAuth, (req, res) => {
-  const db = readDB();
-  res.json({ users: Object.keys(db.users) });
 });
 
 app.get('/api/games', (req, res) => {

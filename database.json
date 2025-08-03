@@ -7,8 +7,23 @@
     },
     "Odet": {
       "password": "Odet",
-      "points": 0,
+      "points": 120,
       "bets": []
+    },
+    "Odetmorina1221jj": {
+      "password": "Odetmorina1221jj",
+      "points": 240,
+      "bets": [
+        {
+          "gameId": "1754254056786-dxfdh",
+          "choice": "team1",
+          "amount": 120,
+          "odds": 2,
+          "status": "won",
+          "wonAmount": 240,
+          "timestamp": "2025-08-03T20:48:01.024Z"
+        }
+      ]
     }
   },
   "games": [
@@ -21,6 +36,16 @@
       "oddsTeam2": 2,
       "oddsDraw": 2,
       "outcome": "draw"
+    },
+    {
+      "id": "1754254056786-dxfdh",
+      "matchName": "Odet",
+      "team1": "Odet",
+      "team2": "Odet",
+      "oddsTeam1": 2,
+      "oddsTeam2": 2,
+      "oddsDraw": 2,
+      "outcome": "team1"
     }
   ]
 }
