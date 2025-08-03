@@ -59,6 +59,35 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
+document.getElementById('delete-game-btn').addEventListener('click', async () => {
+  const gameId = document.getElementById('game-select').value;
+  const msg = document.getElementById('delete-game-msg');
+  msg.textContent = '';
+
+  if (!gameId) {
+    msg.textContent = 'Select a game';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/admin/delete-game', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: currentUser,
+        password: currentPassword,
+        gameId
+      }),
+    });
+    const data = await res.json();
+    msg.textContent = res.ok ? 'Game deleted' : data.error || 'Error deleting game';
+    if (res.ok) loadAdminGames();
+  } catch {
+    msg.textContent = 'Network error';
+  }
+});
+
+
 // Logout buttons
 document.getElementById('logout-admin-btn').addEventListener('click', logout);
 document.getElementById('logout-user-btn').addEventListener('click', logout);

@@ -1,4 +1,3 @@
-// === server.js ===
 const express = require('express');
 const bodyParser = require('body-parser');
 const { readDB, writeDB } = require('./db');
@@ -64,7 +63,6 @@ app.post('/api/admin/delete-user', checkAdminAuth, (req, res) => {
   res.json({ success: true });
 });
 
-// ✅ FIXED: expect 'usernameToAdjust'
 app.post('/api/admin/adjust-points', checkAdminAuth, (req, res) => {
   const { usernameToAdjust, amount } = req.body;
   const db = readDB();
@@ -90,7 +88,8 @@ app.post('/api/admin/add-game', checkAdminAuth, (req, res) => {
     oddsTeam1: Number(oddsTeam1),
     oddsTeam2: Number(oddsTeam2),
     oddsDraw: Number(oddsDraw),
-    outcome: null
+    outcome: null,
+    outcomeSetAt: null
   };
   db.games.push(newGame);
   writeDB(db);
@@ -109,6 +108,7 @@ app.post('/api/admin/set-outcome', checkAdminAuth, (req, res) => {
   }
 
   game.outcome = outcome;
+  game.outcomeSetAt = new Date().toISOString(); // Set outcome timestamp
 
   for (const username in db.users) {
     const user = db.users[username];
@@ -199,6 +199,26 @@ app.post('/api/user/data', (req, res) => {
   });
 });
 
+// Clean up games with outcome set more than 5 minutes ago
+setInterval(() => {
+  const db = readDB();
+  const now = Date.now();
+  const fiveMinutes = 5 * 60 * 1000;
+
+  const gamesToDelete = db.games.filter(game => {
+    return game.outcome && game.outcomeSetAt &&
+           now - new Date(game.outcomeSetAt).getTime() > fiveMinutes;
+  });
+
+  if (gamesToDelete.length > 0) {
+    db.games = db.games.filter(game => !gamesToDelete.includes(game));
+    writeDB(db);
+    console.log(`[Cleanup] Deleted ${gamesToDelete.length} old games`);
+  }
+}, 60 * 1000); // Check every minute
+
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
