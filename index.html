@@ -18,6 +18,17 @@
       padding: 10px;
       border: 1px solid #ccc;
     }
+    .converter-box {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 15px;
+      max-width: 300px;
+    }
+    .converter-box input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 6px;
+    }
   </style>
 </head>
 <body>
@@ -73,26 +84,31 @@
     </div>
 
     <div>
-<div>
-  <h3>Set Outcome</h3>
-  <select id="game-select"></select>
-  <select id="outcome-select">
-    <option value="team1">Team 1</option>
-    <option value="draw">Draw</option>
-    <option value="team2">Team 2</option>
-  </select>
-  <button id="set-outcome-btn">Set Outcome</button>
-  <p id="set-outcome-msg"></p>
+      <h3>Set Outcome</h3>
+      <select id="game-select"></select>
+      <select id="outcome-select">
+        <option value="team1">Team 1</option>
+        <option value="draw">Draw</option>
+        <option value="team2">Team 2</option>
+      </select>
+      <button id="set-outcome-btn">Set Outcome</button>
+      <p id="set-outcome-msg"></p>
 
-  <!-- Delete game button -->
-  <button id="delete-game-btn" style="margin-top: 5px;">Delete Game</button>
-  <p id="delete-game-msg"></p>
-</div>
+      <button id="delete-game-btn" style="margin-top: 5px;">Delete Game</button>
+      <p id="delete-game-msg"></p>
+    </div>
 
     <div>
       <h3>All User Bets</h3>
       <button id="view-bets-btn">View All Bets</button>
       <pre id="users-bets" style="max-height: 300px; overflow: auto;"></pre>
+    </div>
+
+    <!-- Admin EUR ↔ Points Converter -->
+    <div class="converter-box">
+      <h3>EUR ↔ Points Converter (Admin)</h3>
+      <input type="number" id="admin-eur" placeholder="EUR" oninput="convertFromEUR('admin')" />
+      <input type="number" id="admin-convert-points" placeholder="Points" oninput="convertFromPoints('admin')" />
     </div>
 
     <button id="logout-admin-btn">Logout</button>
@@ -112,9 +128,33 @@
       <ul id="user-bets-list"></ul>
     </div>
 
+    <!-- User EUR ↔ Points Converter -->
+    <div class="converter-box">
+      <h3>EUR ↔ Points Converter (User)</h3>
+      <input type="number" id="user-eur" placeholder="EUR" oninput="convertFromEUR('user')" />
+      <input type="number" id="user-convert-points" placeholder="Points" oninput="convertFromPoints('user')" />
+    </div>
+
     <button id="logout-user-btn">Logout</button>
   </section>
 
   <script src="app.js"></script>
+  <script>
+    const rate = 1.30;
+
+    function convertFromEUR(role) {
+      const eurInput = document.getElementById(`${role}-eur`);
+      const pointsInput = document.getElementById(`${role}-convert-points`);
+      const eur = parseFloat(eurInput.value);
+      pointsInput.value = eur ? (eur / rate).toFixed(2) : "";
+    }
+
+    function convertFromPoints(role) {
+      const eurInput = document.getElementById(`${role}-eur`);
+      const pointsInput = document.getElementById(`${role}-convert-points`);
+      const points = parseFloat(pointsInput.value);
+      eurInput.value = points ? (points * rate).toFixed(2) : "";
+    }
+  </script>
 </body>
 </html>
