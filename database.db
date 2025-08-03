@@ -1,0 +1,41 @@
+{
+  "users": {
+    "Odi01": {
+      "password": "Odi01",
+      "points": 0,
+      "bets": []
+    },
+    "Odet": {
+      "password": "Odet",
+      "points": 0,
+      "bets": []
+    },
+    "dwas": {
+      "password": "dwas",
+      "points": 0,
+      "bets": []
+    },
+    "dwaqaewd": {
+      "password": "dwaqaewd",
+      "points": 0,
+      "bets": []
+    },
+    "Odet3": {
+      "password": "Odet3",
+      "points": 0,
+      "bets": []
+    }
+  },
+  "games": [
+    {
+      "id": "1754217471648-ftwou",
+      "matchName": "Odetmorina",
+      "team1": "Odetmorina",
+      "team2": "Odetmorina",
+      "oddsTeam1": 2,
+      "oddsTeam2": 2,
+      "oddsDraw": 2,
+      "outcome": null
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+/* Reset & Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fff;
+  color: #222;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  line-height: 1.5;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h2 {
+  color: #28a745;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  font-size: 1.8rem;
+}
+
+h3 {
+  color: #1e7e34;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+/* Container styling for sections */
+section {
+  max-width: 3000px;
+  margin: 0 auto 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  background: #f9f9f9;
+  transition: background-color 0.3s ease;
+}
+
+body.dark section {
+  background: #1e1e1e;
+  box-shadow: none;
+}
+
+/* Inputs and Buttons */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0 1rem 0;
+  border: 1.5px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 4px #28a745aa;
+  background-color: #fff;
+  color: #222;
+}
+
+body.dark input[type="text"],
+body.dark input[type="password"],
+body.dark input[type="number"],
+body.dark select {
+  background-color: #333;
+  border-color: #555;
+  color: #eee;
+}
+
+body.dark input[type="text"]:focus,
+body.dark input[type="password"]:focus,
+body.dark input[type="number"]:focus,
+body.dark select:focus {
+  border-color: #6fdb6f;
+  box-shadow: 0 0 5px #6fdb6faa;
+  background-color: #2a2a2a;
+}
+
+/* Buttons */
+button {
+  background-color: #28a745;
+  border: none;
+  color: white;
+  padding: 0.6rem 1.25rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 3px 5px rgba(40, 167, 69, 0.4);
+}
+
+button:hover,
+button:focus {
+  background-color: #218838;
+  outline: none;
+  box-shadow: 0 4px 8px rgba(33, 136, 56, 0.6);
+}
+
+body.dark button {
+  background-color: #4caf50;
+  box-shadow: 0 3px 5px rgba(76, 175, 80, 0.5);
+}
+
+body.dark button:hover,
+body.dark button:focus {
+  background-color: #3e8e41;
+  box-shadow: 0 4px 8px rgba(62, 142, 65, 0.7);
+}
+
+/* Dark Mode Toggle Styled as Switch */
+label[for="dark-mode-toggle"] {
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  user-select: none;
+  font-size: 1rem;
+  color: #222;
+  transition: color 0.3s ease;
+}
+
+body.dark label[for="dark-mode-toggle"] {
+  color: #eee;
+}
+
+#dark-mode-toggle {
+  opacity: 0;
+  position: absolute;
+}
+
+#dark-mode-toggle + span {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  background: #ccc;
+  border-radius: 30px;
+  margin-right: 0.75rem;
+  transition: background-color 0.3s ease;
+}
+
+#dark-mode-toggle + span::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#dark-mode-toggle:checked + span {
+  background-color: #28a745;
+}
+
+#dark-mode-toggle:checked + span::before {
+  transform: translateX(22px);
+}
+
+/* Apply the custom switch span */
+label input[type="checkbox"] {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+label input[type="checkbox"] + span {
+  pointer-events: none;
+}
+
+/* Game Items */
+.game-item {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px 15px;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+body.dark .game-item {
+  background: #2a2a2a;
+  box-shadow: none;
+}
+
+/* User Bets List */
+#user-bets-list {
+  list-style: none;
+  padding-left: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+
+body.dark #user-bets-list {
+  background: #222;
+  border-color: #444;
+  color: #eee;
+}
+
+/* Scrollbar Styling */
+#user-bets-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+#user-bets-list::-webkit-scrollbar-thumb {
+  background-color: #28a745;
+  border-radius: 4px;
+}
+
+#user-bets-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+body.dark #user-bets-list::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+/* Paragraph messages */
+p {
+  margin: 0.25rem 0 1rem;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+  color: #555;
+  transition: color 0.3s ease;
+}
+
+body.dark p {
+  color: #ccc;
+}
+
+/* Error messages */
+#error-msg, #login-error,
+#create-user-msg, #delete-user-msg,
+#adjust-points-msg, #add-game-msg, #set-outcome-msg {
+  color: #d9534f;
+  font-weight: 600;
+  min-height: 1.2em;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  section {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+
+  button, input[type="text"], input[type="password"], input[type="number"], select {
+    font-size: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  #user-bets-list {
+    max-height: 200px;
+  }
+}

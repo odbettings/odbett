@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Betting App</title>
+  <style>
+    body.dark {
+      background-color: #121212;
+      color: white;
+    }
+    .hidden {
+      display: none;
+    }
+    .game-item {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <!-- Dark Mode Toggle -->
+  <label>
+    <input type="checkbox" id="dark-mode-toggle" />
+    Dark Mode
+  </label>
+
+  <!-- Login Section -->
+  <section id="login-section">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="login-btn">Login</button>
+    <p id="login-error" style="color: red;"></p>
+  </section>
+
+  <!-- Admin Section -->
+  <section id="admin-section" class="hidden">
+    <h2>Admin Panel</h2>
+
+    <!-- User Management -->
+    <div>
+      <h3>Create User</h3>
+      <input type="text" id="new-user" placeholder="New Username" />
+      <input type="password" id="new-user-pass" placeholder="New Password" />
+      <button id="create-user-btn">Create</button>
+      <p id="create-user-msg"></p>
+    </div>
+
+    <div>
+      <h3>Delete User</h3>
+      <input type="text" id="del-user" placeholder="Username to delete" />
+      <button id="delete-user-btn">Delete</button>
+      <p id="delete-user-msg"></p>
+    </div>
+
+    <div>
+      <h3>Adjust Points</h3>
+      <input type="text" id="points-user" placeholder="Username" />
+      <input type="number" id="points-amount" placeholder="Amount (can be negative)" />
+      <button id="adjust-points-btn">Adjust</button>
+      <p id="adjust-points-msg"></p>
+    </div>
+
+    <!-- Game Management -->
+    <div>
+      <h3>Add Game</h3>
+      <input type="text" id="match-name" placeholder="Match Name" />
+      <input type="text" id="team1" placeholder="Team 1" />
+      <input type="text" id="team2" placeholder="Team 2" />
+      <input type="text" id="odds-team1" placeholder="Odds for Team 1" />
+      <input type="text" id="odds-team2" placeholder="Odds for Team 2" />
+      <input type="text" id="odds-draw" placeholder="Odds for Draw" />
+      <button id="add-game-btn">Add Game</button>
+      <p id="add-game-msg"></p>
+    </div>
+
+    <div>
+      <h3>Set Outcome</h3>
+      <select id="game-select"></select>
+      <select id="outcome-select">
+        <option value="team1">Team 1</option>
+        <option value="draw">Draw</option>
+        <option value="team2">Team 2</option>
+      </select>
+      <button id="set-outcome-btn">Set Outcome</button>
+      <p id="set-outcome-msg"></p>
+    </div>
+
+    <div>
+      <h3>All User Bets</h3>
+      <button id="view-bets-btn">View All Bets</button>
+      <pre id="users-bets" style="max-height: 300px; overflow: auto;"></pre>
+    </div>
+
+    <button id="logout-admin-btn">Logout</button>
+  </section>
+
+  <!-- User Section -->
+  <section id="user-section" class="hidden">
+    <h2>User Dashboard</h2>
+    <p>Your Points: <span id="user-points">N/A</span></p>
+
+    <div>
+      <h3>Available Games</h3>
+      <div id="games-container"></div>
+    </div>
+
+    <div>
+      <h3>Your Bets</h3>
+      <ul id="user-bets-list"></ul>
+    </div>
+
+    <button id="logout-user-btn">Logout</button>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "users": {
+    "Odi01": {
+      "password": "Odi01",
+      "points": 0,
+      "bets": []
+    },
+    "Odet": {
+      "password": "Odet",
+      "points": 0,
+      "bets": []
+    }
+  },
+  "games": [
+    {
+      "id": "1754217931233-51ohp",
+      "matchName": "Odi01",
+      "team1": "Odi01",
+      "team2": "Odi01",
+      "oddsTeam1": 2,
+      "oddsTeam2": 2,
+      "oddsDraw": 2,
+      "outcome": "draw"
+    }
+  ]
+}
