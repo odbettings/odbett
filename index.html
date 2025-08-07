@@ -76,6 +76,9 @@
       <input type="text" id="match-name" placeholder="Match Name" />
       <input type="text" id="team1" placeholder="Team 1" />
       <input type="text" id="team2" placeholder="Team 2" />
+      <input type="text" id="odds-team1" placeholder="Odds for Team 1" />
+      <input type="text" id="odds-team2" placeholder="Odds for Team 2" />
+      <input type="text" id="odds-draw" placeholder="Odds for Draw" />
       <button id="add-game-btn">Add Game</button>
       <p id="add-game-msg"></p>
     </div>
@@ -140,19 +143,18 @@
     const rate = 1.30;
 
     function convertFromEUR(role) {
-      const eurInput = document.getElementById(`${role}-eur`);
-      const pointsInput = document.getElementById(`${role}-convert-points`);
+      const eurInput = document.getElementById(${role}-eur);
+      const pointsInput = document.getElementById(${role}-convert-points);
       const eur = parseFloat(eurInput.value);
       pointsInput.value = eur ? (eur / rate).toFixed(2) : "";
     }
 
     function convertFromPoints(role) {
-      const eurInput = document.getElementById(`${role}-eur`);
-      const pointsInput = document.getElementById(`${role}-convert-points`);
+      const eurInput = document.getElementById(${role}-eur);
+      const pointsInput = document.getElementById(${role}-convert-points);
       const points = parseFloat(pointsInput.value);
       eurInput.value = points ? (points * rate).toFixed(2) : "";
     }
   </script>
 </body>
 </html>
-
