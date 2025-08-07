@@ -214,17 +214,8 @@ document.getElementById('add-game-btn').addEventListener('click', async () => {
   const matchName = document.getElementById('match-name').value.trim();
   const team1 = document.getElementById('team1').value.trim();
   const team2 = document.getElementById('team2').value.trim();
-  const oddsTeam1 = document.getElementById('odds-team1').value.trim();
-  const oddsTeam2 = document.getElementById('odds-team2').value.trim();
-  const oddsDraw = document.getElementById('odds-draw').value.trim();
   const msg = document.getElementById('add-game-msg');
   msg.textContent = '';
-
-  if (!matchName || !team1 || !team2 || !oddsTeam1 || !oddsTeam2 || !oddsDraw) {
-    msg.textContent = 'Fill all fields';
-    return;
-  }
-
   try {
     const res = await fetch('/api/admin/add-game', {
       method: 'POST',
@@ -429,3 +420,4 @@ async function placeBetHandler(e) {
     msgDiv.textContent = 'Network error';
   }
 }
+
