@@ -85,6 +85,9 @@ app.post('/api/admin/add-game', checkAdminAuth, (req, res) => {
     matchName,
     team1,
     team2,
+    oddsTeam1: Number(oddsTeam1),
+    oddsTeam2: Number(oddsTeam2),
+    oddsDraw: Number(oddsDraw),
     outcome: null,
     outcomeSetAt: null
   };
@@ -218,5 +221,6 @@ setInterval(() => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
 
